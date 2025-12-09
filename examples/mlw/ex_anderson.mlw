@@ -1,0 +1,51 @@
+module Ex_anderson
+  use cameleerBHL.CameleerBHL
+  use anderson.Anderson
+
+  let function d1 = UnknownD "d1"
+
+
+  let ex_anderson1 (d : dataset real): real
+  requires {
+    is_empty !st /\
+    d.scale = Interval /\
+    (World !st interp) |= is_continuous d1 /\
+    sampled d d1 /\
+    (World !st interp) |= Possible (Not (is_exponential d1))
+  } ensures {
+    let p = result in
+    Leq p = compose_pvs (Not (is_exponential d1)) !st &&
+    (World !st interp) |= StatB (Leq p) (Not (is_exponential d1))
+  }
+  = exec_anderson d1 d Expon
+end
+
+module Ex_anderson_ksamp
+  use cameleerBHL.CameleerBHL
+  use anderson.Anderson_ksamp
+
+  let function d1 = UnknownD "d1"
+  let function d2 = UnknownD "d2"
+  let function d3 = UnknownD "d3"
+
+  let function alt_h = (d1 $!=^ d2) $|| (d1 $!=^ d3) $|| (d2 $!=^ d3)
+
+  let ex_anderson_ksamp (y1 y2 y3 : dataset real): real
+  requires {
+    independent_list (Cons y1 (Cons y2 (Cons y3 Nil))) /\
+    is_empty !st /\
+    y1.scale = Interval /\ y2.scale = Interval /\ y3.scale = Interval /\  
+    sampled y1 d1 /\ sampled y2 d2 /\ sampled y3 d3 /\
+    (World !st interp) |= is_continuous d1 /\
+    (World !st interp) |= is_continuous d2 /\
+    (World !st interp) |= is_continuous d3 /\
+    (World !st interp) |= Possible (d1 $!=^ d2) /\
+    (World !st interp) |= Possible (d1 $!=^ d3) /\
+    (World !st interp) |= Possible (d2 $!=^ d3)
+  } ensures {
+    let p = result in
+    Leq p = compose_pvs alt_h !st &&
+    (World !st interp) |= StatB (Leq p) (alt_h)
+  }
+  = exec_anderson_ksamp (Cons d1 (Cons d2 (Cons d3 Nil))) (Cons y1 (Cons y2 (Cons y3 Nil)))
+end

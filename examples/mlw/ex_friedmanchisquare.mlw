@@ -1,0 +1,46 @@
+module Ex_friedmanchisquare
+  use cameleerBHL.CameleerBHL
+  use friedmanchisquare.Friedmanchisquare
+
+  let function d1 = UnknownD "d1"
+  let function d2 = UnknownD "d2"
+  let function d3 = UnknownD "d3"
+  let function d4 = UnknownD "d4"
+  let function d5 = UnknownD "d5"
+  let function d6 = UnknownD "d6"
+
+  let function alt_h = friedmanchisquare_hypothesis (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
+
+  let ex_friedman_chisquare (y1 y2 y3 y4 y5 y6: dataset real): real
+  requires {
+    is_empty !st /\
+    y1.scale = Interval /\ y2.scale = Interval /\ y3.scale = Interval /\
+    y4.scale = Interval /\ y5.scale = Interval /\ y6.scale = Interval /\
+    independent_list (Cons y1 (Cons y2 (Cons y3 (Cons y4 (Cons y5 (Cons y6 Nil)))))) /\
+    length y1.data = length y2.data = length y3.data = length y4.data = length y5.data = length y6.data = 11 /\
+    sampled y1 d1 /\ sampled y2 d2 /\ sampled y3 d3 /\
+    sampled y4 d4 /\ sampled y5 d5 /\ sampled y6 d6 /\
+    repeated_sample (Cons y1 (Cons y2 (Cons y3 (Cons y4 (Cons y5 (Cons y6 Nil)))))) /\
+    (World !st interp) |= Possible (d1 $!=^ d2) /\
+    (World !st interp) |= Possible (d1 $!=^ d3) /\
+    (World !st interp) |= Possible (d1 $!=^ d4) /\
+    (World !st interp) |= Possible (d1 $!=^ d5) /\
+    (World !st interp) |= Possible (d1 $!=^ d6) /\
+    (World !st interp) |= Possible (d2 $!=^ d3) /\
+    (World !st interp) |= Possible (d2 $!=^ d4) /\
+    (World !st interp) |= Possible (d2 $!=^ d5) /\
+    (World !st interp) |= Possible (d2 $!=^ d6) /\
+    (World !st interp) |= Possible (d3 $!=^ d4) /\
+    (World !st interp) |= Possible (d3 $!=^ d5) /\
+    (World !st interp) |= Possible (d3 $!=^ d6) /\
+    (World !st interp) |= Possible (d4 $!=^ d5) /\
+    (World !st interp) |= Possible (d4 $!=^ d6) /\
+    (World !st interp) |= Possible (d5 $!=^ d6)
+  } ensures {
+    let p = result in
+    Eq p = compose_pvs alt_h !st &&
+    (World !st interp) |= StatB (Leq p) (alt_h)
+  }
+  = exec_friedmanchisquare (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
+                           (Cons y1 (Cons y2 (Cons y3 (Cons y4 (Cons y5 (Cons y6 Nil))))))
+end

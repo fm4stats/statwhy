@@ -6,8 +6,9 @@ module Ttest_1samp
   let function v : parameter = "var1"
   let function pp = NormalD (Param m) (Param v)
   
-  let ex_ttest_1samp (d : list real) : real
+  let ex_ttest_1samp (d : dataset real) : real
   requires {
+    d.scale = Interval /\
     is_empty !st /\
     sampled d pp /\
     (World !st interp) |= Possible (mean pp $< const_term 0.0) /\
@@ -34,13 +35,14 @@ module Ttest_ind
   let function p1 = NormalD (Param m1) (Param v1)
   let function p2 = NormalD (Param m2) (Param v2)
   
-  let ex_ttest_ind_eq (d1 : list real) (d2 : list real) : real
+  let ex_ttest_ind_eq (d1 : dataset real) (d2 : dataset real) : real
   requires {
+    d1.scale = d2.scale = Interval /\
+    independent d1 d2 /\
     is_empty !st /\
     sampled d1 p1 /\ sampled d2 p2 /\
     (World !st interp) |= Know (var p1 $= var p2) /\
     (World !st interp) |= eq_variance p1 p2 /\
-    non_paired d1 d2 /\
     (World !st interp) |= Possible (mean p1 $< mean p2) /\
     (World !st interp) |= Possible (mean p1 $> mean p2)
   }
@@ -49,14 +51,16 @@ module Ttest_ind
     Eq p = compose_pvs (mean p1 $!= mean p2) !st &&
     (World !st interp) |= StatB (Eq p) (mean p1 $!= mean p2)
   }
-  = exec_ttest_ind_eq p1 p2 (d1, d2) Two
+  = exec_ttest_ind_eq p1 p2 d1 d2 Two
 
-  let ex_ttest_ind_neq (d1 : list real) (d2 : list real) : real
+  let ex_ttest_ind_neq (d1 : dataset real) (d2 : dataset real) : real
   requires {
+    d1.scale = d2.scale = Interval /\
+    independent d1 d2 /\
     is_empty !st /\
     sampled d1 p1 /\ sampled d2 p2 /\
     (World !st interp) |= Not (eq_variance p1 p2)
-    /\ non_paired d1 d2 /\
+    /\
     (World !st interp) |= Possible (mean p1 $< mean p2) /\
     (World !st interp) |= Possible (mean p1 $> mean p2)
   }
@@ -65,7 +69,7 @@ module Ttest_ind
     Eq p = compose_pvs (mean p1 $!= mean p2) !st &&
     (World !st interp) |= StatB (Eq p) (mean p1 $!= mean p2)
   }
-  = exec_ttest_ind_neq p1 p2 (d1, d2) Two
+  = exec_ttest_ind_neq p1 p2 d1 d2 Two
 end
 
 module Ttest_paired
@@ -80,8 +84,10 @@ module Ttest_paired
   let function p1 = NormalD (Param m1) (Param v1)
   let function p2 = NormalD (Param m2) (Param v2)
   
-  let ex_ttest_paired (d1 : list real) (d2 : list real) : real
+  let ex_ttest_paired (d1 : dataset real) (d2 : dataset real) : real
   requires {
+    d1.scale = d2.scale = Interval /\
+    paired d1 d2 /\
     is_empty !st /\
     sampled d1 p1 /\ sampled d2 p2 /\
     paired d1 d2 /\
@@ -93,5 +99,5 @@ module Ttest_paired
     Eq p = compose_pvs (mean p1 $!= mean p2) !st &&
     (World !st interp) |= StatB (Eq p) (mean p1 $!= mean p2)
   }
-  = exec_ttest_paired p1 p2 (d1, d2) Two
+  = exec_ttest_paired p1 p2 d1 d2 Two
 end

@@ -1,0 +1,20 @@
+module Quantile_test_example
+  use cameleerBHL.CameleerBHL
+  use quantile_test.Quantile_test
+
+  let function dd = UnknownD "d1"
+
+  let ex_quantile_test (d: dataset real) : real
+  requires {
+    is_empty !st /\
+    sampled d dd /\ d.scale=Interval /\
+    (World !st interp) |= Possible (quantile dd 0.25 $< const_term 3.0) /\
+    (World !st interp) |= Possible (quantile dd 0.25 $> const_term 3.0)
+  }
+  ensures {
+    let p = result in
+    Eq p = compose_pvs (quantile dd 0.25 $!= const_term 3.0) !st /\
+    (World !st interp) |= StatB (Eq p) (quantile dd 0.25 $!= const_term 3.0)
+  }
+  = exec_quantile_test dd 0.25 3.0 d Two
+end

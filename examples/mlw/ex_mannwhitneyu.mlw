@@ -1,15 +1,16 @@
-module Manwhitneyu
+module Mannwhitneyu
   use cameleerBHL.CameleerBHL
-  use manwhitneyu.Manwhitneyu
+  use mannwhitneyu.Mannwhitneyu
 
   let function p1 = UnknownD "p1"
   let function p2 = UnknownD "p2"
 
-  let ex_manwhitneyu (d1 d2 : list real) : real
+  let ex_mannwhitneyu (d1 d2 : dataset real) : real
   requires {
     is_empty !st /\
     sampled d1 p1 /\ sampled d2 p2 /\
-    non_paired d1 d2 /\
+    d1.scale = Ordinal /\ d2.scale = Ordinal /\
+    independent d1 d2 /\
     (World !st interp) |= Possible (p1 $!=^ p2)
   } ensures {
     let p = result in

@@ -1,0 +1,22 @@
+module Ex_epps_singleton_2samp
+  use cameleerBHL.CameleerBHL
+  use epps_singleton_2samp.Epps_singleton_2samp
+
+  let function p1 = UnknownD "p1"
+  let function p2 = NormalD (Param "m") (Param "v")
+
+  let ex_epps_singleton_2samp (d1 d2: dataset real) : real
+  requires {
+    is_empty !st /\
+    independent d1 d2 /\
+    sampled d1 p1 /\ sampled d2 p2 /\
+    length d1.data = 30 /\ length d2.data = 30 /\
+    d1.scale = Interval /\ d2.scale = Interval /\
+    (World !st interp) |= Possible (p1 $!=^ p2)
+  } ensures {
+    let p = result in
+    Eq p = compose_pvs (p1 $!=^ p2) !st &&
+    (World !st interp) |= StatB (Eq p) (p1 $!=^ p2)
+  }
+  = exec_epps_singleton_2samp p1 p2 d1 d2
+end

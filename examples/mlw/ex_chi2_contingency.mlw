@@ -1,0 +1,68 @@
+module Ex_chi2_contingency
+  use cameleerBHL.CameleerBHL
+  use chi2_contingency.Chi2_contingency
+  
+  let function p1 : real_number = Param "p1"
+  let function p2 : real_number = Param "p2"
+  let function p3 : real_number = Param "p3"
+  let function p4 : real_number = Param "p4"
+
+  let function p1' : real_number = Param "p1'"
+  let function p2' : real_number = Param "p2'"
+  let function p3' : real_number = Param "p3'"
+  let function p4' : real_number = Param "p4'"
+  
+  let function p = CategoricalD (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil))))
+
+  let function p' = CategoricalD (Cons p1' (Cons p2' (Cons p3' (Cons p4' Nil))))
+  
+  let function h = Not (independent_dist p p')
+
+  val function y1: list int
+  val function y2: list int
+  val function y3: list int
+  val function y4: list int
+
+  let function ys = { data = Cons y1 (Cons y2 (Cons y3 (Cons y4 Nil))); scale = Unspecified }
+
+  let ex_chi2_contingency ()
+    requires { is_empty !st /\
+               sampled2 ys p p' /\
+               length y1 = length y2 = length y3 = length y4 = 4 /\
+                    for_all (for_all (fun y -> y >= 5)) (Cons y1 (Cons y2 (Cons y3 (Cons y4 Nil)))) /\
+               is_prob_dist (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) (World !st interp) /\
+               is_prob_dist (Cons p1' (Cons p2' (Cons p3' (Cons p4' Nil)))) (World !st interp) /\
+               (World !st interp) |= Possible h
+             }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs h !st &&
+      (World !st interp) |= StatB (Eq p) h
+    }
+    = exec_chi2_contingency p p' ys false
+
+  let function q = CategoricalD (Cons p1 (Cons p2 Nil))
+
+  let function q' = CategoricalD (Cons p1' (Cons p2' Nil))
+
+  val function z1: list int
+  val function z2: list int
+
+  let function zs = { data = Cons z1 (Cons z2 Nil); scale = Unspecified }
+
+  let ex_chi2_contingency_yates ()
+    requires { is_empty !st /\
+               sampled2 zs q q' /\
+               length z1 = length z2 = 2 /\
+               (exists x. x < 5 /\ (mem x z1 \/ mem x z2)) /\
+               is_prob_dist (Cons p1 (Cons p2 Nil)) (World !st interp) /\
+               is_prob_dist (Cons p1' (Cons p2' Nil)) (World !st interp) /\
+               (World !st interp) |= Possible h
+             }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs (Not (independent_dist q q')) !st &&
+      (World !st interp) |= StatB (Eq p) (Not (independent_dist q q'))
+    }
+    = exec_chi2_contingency q q' zs true
+end

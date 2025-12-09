@@ -1,6 +1,6 @@
-module Fligner_example
+module Levene_example
   use cameleerBHL.CameleerBHL
-  use fligner.Fligner
+  use levene.Levene
   
   let function p1 : distribution = UnknownD "p1"
   let function p2 : distribution = UnknownD "p2"
@@ -10,11 +10,11 @@ module Fligner_example
   let function t_v2 = var p2
   let function t_v3 = var p3
   
-  let ex_fligner (d1 d2 d3 : dataset real)
-  (* Executes Fligner-Killeen test for 3 population variances *)
-    requires { is_empty !st /\
-               for_all (fun d -> d.scale = Interval) (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+  let ex_levene (d1 d2 d3 : dataset real)
+  (* Executes Levene test for 3 population variances *)
+    requires { for_all (fun d -> d.scale = Interval) (Cons d1 (Cons d2 (Cons d3 Nil))) /\
                independent_list (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               is_empty !st /\
                for_all2
                  (fun p y -> sampled y p)
                  (Cons p1 (Cons p2 (Cons p3 Nil)))
@@ -32,5 +32,5 @@ module Fligner_example
       Eq p = compose_pvs h !st &&
       (World !st interp) |= StatB (Eq p) h
     }
-    = exec_fligner (Cons p1 (Cons p2 (Cons p3 Nil))) (Cons d1 (Cons d2 (Cons d3 Nil)))
+    = exec_levene (Cons p1 (Cons p2 (Cons p3 Nil))) (Cons d1 (Cons d2 (Cons d3 Nil)))
 end

@@ -9,15 +9,15 @@ module Steel_Dwass_example
     | Cons x r -> if n = 0 then x else nth_p (n - 1) r
     end
 
-  let function p1 : population = UnknownD "p1"
-  let function p2 : population = UnknownD "p2"
-  let function p3 : population = UnknownD "p3"
-  let function p4 : population = UnknownD "p4"
-  let function p5 : population = UnknownD "p5"
-  let function p6 : population = UnknownD "p6"
-  let function p7 : population = UnknownD "p7"
-  let function p8 : population = UnknownD "p8"
-  let function p9 : population = UnknownD "p9"
+  let function p1 = UnknownD "p1"
+  let function p2 = UnknownD "p2"
+  let function p3 = UnknownD "p3"
+  let function p4 = UnknownD "p4"
+  let function p5 = UnknownD "p5"
+  let function p6 = UnknownD "p6"
+  let function p7 = UnknownD "p7"
+  let function p8 = UnknownD "p8"
+  let function p9 = UnknownD "p9"
 
   let function t_mu1 = RealT (mean p1)
   let function t_mu2 = RealT (mean p2)
@@ -31,8 +31,9 @@ module Steel_Dwass_example
 
   let function terms2 = (Cons t_mu1 (Cons t_mu2 Nil))
 
-  let ex_steel_dwass2 (d1 d2 : (list real)) : array real
+  let ex_steel_dwass2 d1 d2 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 Nil))
@@ -52,8 +53,9 @@ module Steel_Dwass_example
 
   let function terms3 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 Nil)))
 
-  let ex_steel_dwass3 (d1 d2 d3 : (list real)) : array real
+  let ex_steel_dwass3 d1 d2 d3 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 Nil)))
@@ -74,8 +76,9 @@ module Steel_Dwass_example
 
   let function terms4 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 Nil))))
 
-  let ex_steel_dwass4 (d1 d2 d3 d4 : (list real)) : array real
+  let ex_steel_dwass4 d1 d2 d3 d4 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = d4.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil))))
@@ -97,8 +100,9 @@ module Steel_Dwass_example
 
   let function terms5 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 Nil)))))
   
-  let ex_steel_dwass5 (d1 d2 d3 d4 d5: (list real)) : array real
+  let ex_steel_dwass5 d1 d2 d3 d4 d5 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil)))))
@@ -121,8 +125,9 @@ module Steel_Dwass_example
 
   let function terms6 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 Nil))))))
   
-  let ex_steel_dwass6 (d1 d2 d3 d4 d5 d6: (list real)) : array real
+  let ex_steel_dwass6 d1 d2 d3 d4 d5 d6 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = d6.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
@@ -148,8 +153,9 @@ module Steel_Dwass_example
   let function terms7 =
     (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 (Cons t_mu7 Nil)))))))
 
-  let ex_steel_dwass7 (d1 d2 d3 d4 d5 d6 d7 : (list real)) : array real
+  let ex_steel_dwass7 d1 d2 d3 d4 d5 d6 d7 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = d6.scale = d7.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil)))))))
@@ -176,20 +182,18 @@ module Steel_Dwass_example
   let function terms9 =
     (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 (Cons t_mu7 (Cons t_mu8 (Cons t_mu9 Nil)))))))))
 
-  let ex_steel_dwass9 (d1 d2 d3 d4 d5 d6 d7 d8 d9 : (list real)) : array real
+  let ex_steel_dwass9 d1 d2 d3 d4 d5 d6 d7 d8 d9 : array real
     requires { !st = Nil /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = d6.scale = d7.scale = d8.scale = d9.scale = Interval /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 (Cons d8 (Cons d9 Nil)))))))))
                  (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 (Cons p8 (Cons p9 Nil))))))))) /\
-               (World !st interp) |= eq_variance p1 p2 /\
-               (World !st interp) |= eq_variance p2 p3 /\
-               (World !st interp) |= eq_variance p3 p4 /\
-               (World !st interp) |= eq_variance p4 p5 /\
-               (World !st interp) |= eq_variance p5 p6 /\
-               (World !st interp) |= eq_variance p6 p7 /\
-               (World !st interp) |= eq_variance p7 p8 /\
-               (World !st interp) |= eq_variance p8 p9 /\
+               for_all
+                 (fun x -> match x with
+                   | (p, q) -> (World !st interp) |= eq_variance p q
+                   end)
+                 (cmb (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 (Cons p8 (Cons p9 Nil)))))))))) /\
                for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms9 "<") /\
                for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms9 ">")
              }

@@ -1,0 +1,22 @@
+module Ranksums
+  use cameleerBHL.CameleerBHL
+  use ranksums.Ranksums
+
+  let function p1 = UnknownD "p1"
+  let function p2 = UnknownD "p2"
+
+  let ex_ranksums (d1 d2 : dataset real) : real
+  requires {
+    is_empty !st /\
+    sampled d1 p1 /\ sampled d2 p2 /\ independent d1 d2 /\
+    (World !st interp) |= is_continuous p1 /\
+    (World !st interp) |= is_continuous p2 /\
+    d1.scale = Interval /\ d2.scale = Interval /\
+    (World !st interp) |= Possible (p1 $<^ p2) /\ (World !st interp) |= Possible (p1 $>^ p2)
+  } ensures {
+    let p = result in
+    Eq p = compose_pvs ((p1 $>^ p2) $|| (p1 $<^ p2)) !st &&
+    (World !st interp) |= StatB (Eq p) ((p1 $>^ p2) $|| (p1 $<^ p2))
+  }
+  = exec_ranksums p1 p2 d1 d2
+end

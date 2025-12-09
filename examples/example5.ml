@@ -1,9 +1,8 @@
 open CameleerBHL
 
-module P_value_hacking = struct
+module Example5 = struct
   open Ttest
 
-  (* Distributions and formulas *)
   let t_n = NormalD (Param "mu1", Param "var")
   let fmlA_l = mean t_n $< const_term 1.0
   let fmlA_u = mean t_n $> const_term 1.0
@@ -11,7 +10,7 @@ module P_value_hacking = struct
 
   (* Example of p-value hacking *)
   (* This program is INCORRECT and so its verification FAILS *)
-  let p_value_hacking d1 d2 =
+  let example5 d1 d2 =
     let p1 = exec_ttest_1samp t_n 1.0 d1 Two in
     let p2 = exec_ttest_1samp t_n 1.0 d2 Two in
     let p = min p1 p2 in
@@ -21,6 +20,7 @@ module P_value_hacking = struct
     requires
       is_empty (!st) /\
       sampled d1 t_n /\ sampled d2 t_n /\
+      d1.scale = d2.scale = Interval /\
       (World (!st) interp) |= Possible fmlA_l /\
       (World (!st) interp) |= Possible fmlA_u
     ensures

@@ -1,6 +1,6 @@
-module Chi_square_example
+module Power_divergence_example
   use cameleerBHL.CameleerBHL
-  use chisquare.Chisquare
+  use power_divergence.Power_Divergence
   
   let function p1 : real_number = Param "p1"
   let function p2 : real_number = Param "p2"
@@ -19,12 +19,11 @@ module Chi_square_example
                    ((param_term p3) $!= (const_term q3)) $||
                    ((param_term p4) $!= (const_term q4))
   
-  let ex_chisquare (d : dataset int)
+  let ex_power_divergence (d : dataset int)
     requires { d.scale = Unspecified /\
-               sampled d p /\
                is_empty !st /\
                length d.data = 4 /\
-               for_all (fun i -> i >= 5) d.data /\
+               sampled d p /\
                let size = from_int (sum d.data) in
                (q1 *. size >=. 5.0) /\
                (q2 *. size >=. 5.0) /\
@@ -32,6 +31,7 @@ module Chi_square_example
                (q4 *. size >=. 5.0) /\
                is_prob_dist (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) (World !st interp) /\
                is_prob_dist_const (Cons q1 (Cons q2 (Cons q3 (Cons q4 Nil)))) /\
+               for_all (fun x -> x >= 5) d.data /\
                ((World !st interp) |= Possible (param_term p1 $< const_term q1)) /\
                ((World !st interp) |= Possible (param_term p1 $> const_term q1)) /\
                ((World !st interp) |= Possible (param_term p2 $< const_term q2)) /\
@@ -46,5 +46,5 @@ module Chi_square_example
       Eq p = compose_pvs h !st &&
       (World !st interp) |= StatB (Eq p) h
     }
-    = exec_chisquare_test p (Cons q1 (Cons q2 (Cons q3 (Cons q4 Nil)))) d false
+    = exec_power_divergence p (Cons q1 (Cons q2 (Cons q3 (Cons q4 Nil)))) d (Some 1.0)
 end

@@ -1,6 +1,6 @@
 open CameleerBHL
 
-module Example_1samp_t_test = struct
+module Example1 = struct
   open Ttest
 
   (* Declarations of a distribution and formulas *)
@@ -10,11 +10,12 @@ module Example_1samp_t_test = struct
   let fmlA = mean t_n $!= const_term 1.0
 
   (* executes the t-test for a population mean *)
-  let example_1samp_t_test (d : float list dataset) : float = exec_ttest_1samp t_n 1.0 d Two
+  let example1 (d : float dataset) : float = exec_ttest_1samp t_n 1.0 d Two
   (*@ p = example1 d
     requires
       is_empty (!st) /\
       sampled d t_n /\
+      d.scale = Interval /\
       (World (!st) interp) |= Possible fmlA_l /\
       (World (!st) interp) |= Possible fmlA_u
     ensures
@@ -24,12 +25,13 @@ module Example_1samp_t_test = struct
 
   (* executes the same test but lacks one of the precondition, "sampled d t_n" *)
   (* This program is INCORRECT and so its verification FAILS *)
-  let example_1samp_t_test_fail (d : float list dataset) : float =
+  let example1' (d : float dataset) : float =
     exec_ttest_1samp t_n 1.0 d Two
   (*@ p = example1 d
     requires
       is_empty (!st) /\
       (* sampled d t_n /\ *)
+      d.scale = Interval /\
       (World (!st) interp) |= Possible fmlA_l /\
       (World (!st) interp) |= Possible fmlA_u
     ensures

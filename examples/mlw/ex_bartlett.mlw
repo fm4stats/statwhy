@@ -2,17 +2,19 @@ module Bartlett_example
   use cameleerBHL.CameleerBHL
   use bartlett.Bartlett
   
-  let function p1 : population = NormalD (Param "mean1") (Param "var1")
-  let function p2 : population = NormalD (Param "mean2") (Param "var2")
-  let function p3 : population = NormalD (Param "mean3") (Param "var3")
+  let function p1 : distribution = NormalD (Param "mean1") (Param "var1")
+  let function p2 : distribution = NormalD (Param "mean2") (Param "var2")
+  let function p3 : distribution = NormalD (Param "mean3") (Param "var3")
 
   let function t_v1 = var p1
   let function t_v2 = var p2
   let function t_v3 = var p3
   
-  let ex_bartlett (d1 d2 d3 : (list real))
+  let ex_bartlett (d1 d2 d3 : dataset real)
   (* Executes Bartlett test for 3 population variances *)
-    requires { is_empty !st /\
+    requires { independent_list (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               for_all (fun d -> d.scale = Interval) (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               is_empty !st /\
                for_all2
                  (fun p y -> sampled y p)
                  (Cons p1 (Cons p2 (Cons p3 Nil)))

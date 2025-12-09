@@ -4,12 +4,14 @@ module Ks_test
 
   let function p1 = UnknownD "p1"
   let function p2 = NormalD (Param "m") (Param "v")
-  let function p_null = BernoulliD (Const 1.0)
+  let function p_null = NormalD (Const 1.0) (Const 1.0)
 
-  let ex_ks_1samp (d : list real) : real
+  let ex_ks_1samp (d : dataset real) : real
   requires {
     is_empty !st /\
     sampled d p1 /\
+    d.scale = Interval /\
+    (World !st interp) |= is_continuous p1 /\
     (World !st interp) |= Possible (p1 $!=^ p_null)
   } ensures {
     let p = result in
@@ -18,15 +20,18 @@ module Ks_test
   }
   = exec_ks_1samp p1 p_null d
 
-  let ex_ks_2samp (d1 d2 : list real) : real
+  let ex_ks_2samp (d1 d2 : dataset real) : real
   requires {
     is_empty !st /\
-    sampled d1 p1 /\ sampled d2 p2 /\ non_paired d1 d2 /\
+    d1.scale = d2.scale = Interval /\
+    independent d1 d2 /\
+    sampled d1 p1 /\ sampled d2 p2 /\
+    (World !st interp) |= is_continuous p1 /\
     (World !st interp) |= Possible (p1 $!=^ p2)
   } ensures {
     let p = result in
     Eq p = compose_pvs (p1 $!=^ p2) !st &&
     (World !st interp) |= StatB (Eq p) (p1 $!=^ p2)
   }
-  = exec_ks_2samp p1 p2 (d1, d2)
+  = exec_ks_2samp p1 p2 d1 d2
 end

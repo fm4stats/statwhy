@@ -1,0 +1,20 @@
+module Kurtosistest_example
+  use cameleerBHL.CameleerBHL
+  use kurtosistest.Kurtosistest
+
+  let function dd = UnknownD "d1"
+
+  let ex_kurtosistest (d: dataset real) : real
+  requires {
+    is_empty !st /\
+    sampled d dd /\ d.scale=Interval /\
+    (World !st interp) |= Possible (kurtosis dd $< const_term 0.0) /\
+    (World !st interp) |= Possible (kurtosis dd $> const_term 0.0)
+  }
+  ensures {
+    let p = result in
+    Eq p = compose_pvs (kurtosis dd $!= const_term 0.0) !st /\
+    (World !st interp) |= StatB (Eq p) (kurtosis dd $!= const_term 0.0)
+  }
+  = exec_kurtosistest dd d
+end

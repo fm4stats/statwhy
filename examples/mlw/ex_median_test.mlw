@@ -1,0 +1,23 @@
+module Ex_median_test
+  use cameleerBHL.CameleerBHL
+  use median_test.Median_test
+
+  let function d1 = UnknownD "d1"
+  let function d2 = UnknownD "d2"
+
+  let function alt_h = (med d1 $!= med d2)
+
+  let ex_median_test (y1 y2: dataset real): real
+  requires {
+    is_empty !st /\
+    y1.scale = Interval /\ y2.scale = Interval /\
+    independent y1 y2 /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    (World !st interp) |= Possible (med d1 $<= med d2) /\
+    (World !st interp) |= Possible (med d1 $>= med d2)
+  } ensures {
+    let p = result in
+    (World !st interp) |= StatB (Eq p) alt_h
+  }
+  = exec_median_test d1 d2 y1 y2
+end

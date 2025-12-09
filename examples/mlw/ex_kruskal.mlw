@@ -10,9 +10,11 @@ module Kruskal_example
   let function t_m2 = med p2
   let function t_m3 = med p3 
   
-  let ex_kruskal (d1 d2 d3 : (list real))
+  let ex_kruskal (d1 d2 d3 : dataset real)
   (* Executes Kruskal test for 3 population medians *)
-    requires { is_empty !st /\
+    requires { for_all (fun d -> d.scale = Interval) (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               independent_list (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               is_empty !st /\
                for_all2
                  (fun p y -> sampled y p)
                  (Cons p1 (Cons p2 (Cons p3 Nil)))

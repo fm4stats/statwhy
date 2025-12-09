@@ -19,15 +19,15 @@ module Tukey_HSD_example
   let function mu8 : parameter = "mu8"
   let function mu9 : parameter = "mu9"
   
-  let function p1 : population = NormalD (Param mu1) (Param "var")
-  let function p2 : population = NormalD (Param mu2) (Param "var")
-  let function p3 : population = NormalD (Param mu3) (Param "var")
-  let function p4 : population = NormalD (Param mu4) (Param "var")
-  let function p5 : population = NormalD (Param mu5) (Param "var")
-  let function p6 : population = NormalD (Param mu6) (Param "var")
-  let function p7 : population = NormalD (Param mu7) (Param "var")
-  let function p8 : population = NormalD (Param mu8) (Param "var")
-  let function p9 : population = NormalD (Param mu9) (Param "var")
+  let function p1 : distribution = NormalD (Param mu1) (Param "var")
+  let function p2 : distribution = NormalD (Param mu2) (Param "var")
+  let function p3 : distribution = NormalD (Param mu3) (Param "var")
+  let function p4 : distribution = NormalD (Param mu4) (Param "var")
+  let function p5 : distribution = NormalD (Param mu5) (Param "var")
+  let function p6 : distribution = NormalD (Param mu6) (Param "var")
+  let function p7 : distribution = NormalD (Param mu7) (Param "var")
+  let function p8 : distribution = NormalD (Param mu8) (Param "var")
+  let function p9 : distribution = NormalD (Param mu9) (Param "var")
 
   let function t_mu1 = RealT (mean p1)
   let function t_mu2 = RealT (mean p2)
@@ -41,14 +41,20 @@ module Tukey_HSD_example
 
   let function terms2 = (Cons t_mu1 (Cons t_mu2 Nil))
 
-  let ex_tukey_hsd2 (d1 d2 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd2 (d1 d2 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 Nil)) /\
+               independent_list
+                 (Cons d1 (Cons d2 Nil)) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 Nil))
                  (Cons p1 (Cons p2 Nil)) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms2 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms2 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms2 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms2 ">")
              }
     ensures {
       let ps = result in
@@ -57,18 +63,25 @@ module Tukey_HSD_example
                 (World !st interp |= StatB (Eq (ps[i])) fml))
               (enumerate (combinations terms2 "!=") 0)
     }
-    = exec_tukey_hsd (Cons p1 (Cons p2 Nil)) (Cons d1 (Cons d2 Nil))
+    = exec_tukey_hsd (Cons p1 (Cons p2 Nil))
+                     (Cons d1 (Cons d2 Nil))
   
   let function terms3 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 Nil)))
 
-  let ex_tukey_hsd3 (d1 d2 d3 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd3 (d1 d2 d3 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               independent_list
+                 (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 Nil)))
                  (Cons p1 (Cons p2 (Cons p3 Nil))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms3 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms3 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms3 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms3 ">")
              }
     ensures {
       let ps = result in
@@ -77,18 +90,25 @@ module Tukey_HSD_example
                 (World !st interp |= StatB (Eq (ps[i])) fml))
               (enumerate (combinations terms3 "!=") 0)
     }
-    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 Nil))) (Cons d1 (Cons d2 (Cons d3 Nil)))
+    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 Nil)))
+                     (Cons d1 (Cons d2 (Cons d3 Nil)))
 
   let function terms4 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 Nil))))
 
-  let ex_tukey_hsd4 (d1 d2 d3 d4 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd4 (d1 d2 d3 d4 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil)))) /\
+               independent_list
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil)))) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil))))
                  (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms4 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms4 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms4 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms4 ">")
              }
     ensures {
       let ps = result in
@@ -97,18 +117,26 @@ module Tukey_HSD_example
                 (World !st interp |= StatB (Eq (ps[i])) fml))
               (enumerate (combinations terms4 "!=") 0)
     }
-    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil))))
+    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil))))
+                     (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil))))
 
-  let function terms5 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 Nil)))))
+  let function terms5 =
+    (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 Nil)))))
   
-  let ex_tukey_hsd5 (d1 d2 d3 d4 d5 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd5 (d1 d2 d3 d4 d5 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil))))) /\
+               independent_list
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil))))) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil)))))
                  (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil))))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms5 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms5 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms5 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms5 ">")
              }
     ensures {
       let ps = result in
@@ -120,16 +148,23 @@ module Tukey_HSD_example
     = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil)))))
                      (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil)))))
 
-  let function terms6 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 Nil))))))
+  let function terms6 =
+    (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 Nil))))))
   
-  let ex_tukey_hsd6 (d1 d2 d3 d4 d5 d6: (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd6 (d1 d2 d3 d4 d5 d6: dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil)))))) /\
+               independent_list
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil)))))) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
                  (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil)))))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms6 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml) (combinations terms6 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms6 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml)
+                       (combinations terms6 ">")
              }
     ensures {
       let ps = result in
@@ -138,19 +173,26 @@ module Tukey_HSD_example
                 (World !st interp |= StatB (Eq (ps[i])) fml))
               (enumerate (combinations terms6 "!=") 0)
     }
-    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil)))))) (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
+    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil))))))
+                     (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
 
   let function terms7 =
     (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 (Cons t_mu7 Nil)))))))
 
-  let ex_tukey_hsd7 (d1 d2 d3 d4 d5 d6 d7 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd7 (d1 d2 d3 d4 d5 d6 d7 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil))))))) /\
+               independent_list
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil))))))) /\
+               !st = Nil /\
                for_all2
                  sampled
                  (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil)))))))
                  (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil))))))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms7 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms7 ">")
+               for_all (fun fml -> (World !st interp) |= Possible fml )
+                       (combinations terms7 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml )
+                       (combinations terms7 ">")
              }
     ensures {
       let ps = result in
@@ -159,19 +201,58 @@ module Tukey_HSD_example
                 (World !st interp |= StatB (Eq (ps[i])) fml))
               (enumerate (combinations terms7 "!=") 0)
     }
-    = exec_tukey_hsd (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil))))))) (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil)))))))
+    = exec_tukey_hsd
+        (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil)))))))
+        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil)))))))
 
   let function terms9 =
-    (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 (Cons t_mu4 (Cons t_mu5 (Cons t_mu6 (Cons t_mu7 (Cons t_mu8 (Cons t_mu9 Nil)))))))))
+    (Cons t_mu1
+      (Cons t_mu2
+        (Cons t_mu3
+          (Cons t_mu4
+            (Cons t_mu5
+              (Cons t_mu6
+                (Cons t_mu7 (Cons t_mu8 (Cons t_mu9 Nil)))))))))
 
-  let ex_tukey_hsd9 (d1 d2 d3 d4 d5 d6 d7 d8 d9 : (list real)) : array real
-    requires { !st = Nil /\
+  let ex_tukey_hsd9
+    (d1 d2 d3 d4 d5 d6 d7 d8 d9 : dataset real) : array real
+    requires { for_all (fun d -> d.scale = Interval)
+                        (Cons d1
+                          (Cons d2
+                            (Cons d3
+                              (Cons d4
+                                (Cons d5
+                                  (Cons d6
+                                    (Cons d7 (Cons d8 (Cons d9 Nil))))))))) /\
+               independent_list
+                 (Cons d1
+                   (Cons d2
+                     (Cons d3
+                       (Cons d4
+                         (Cons d5
+                           (Cons d6
+                             (Cons d7 (Cons d8 (Cons d9 Nil))))))))) /\
+               !st = Nil /\
                for_all2
                  sampled
-                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 (Cons d8 (Cons d9 Nil)))))))))
-                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 (Cons p8 (Cons p9 Nil))))))))) /\
-               for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms9 "<") /\
-               for_all (fun fml -> (World !st interp) |= Possible fml ) (combinations terms9 ">")
+                 (Cons d1
+                   (Cons d2
+                     (Cons d3
+                       (Cons d4
+                         (Cons d5
+                           (Cons d6
+                             (Cons d7 (Cons d8 (Cons d9 Nil)))))))))
+                 (Cons p1
+                   (Cons p2
+                     (Cons p3
+                       (Cons p4
+                         (Cons p5
+                           (Cons p6
+                             (Cons p7 (Cons p8 (Cons p9 Nil))))))))) /\
+               for_all (fun fml -> (World !st interp) |= Possible fml )
+                       (combinations terms9 "<") /\
+               for_all (fun fml -> (World !st interp) |= Possible fml )
+                       (combinations terms9 ">")
              }
     ensures {
       let ps = result in
@@ -181,6 +262,18 @@ module Tukey_HSD_example
               (enumerate (combinations terms9 "!=") 0)
     }
     = exec_tukey_hsd
-        (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 (Cons p8 (Cons p9 Nil)))))))))
-        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 (Cons d8 (Cons d9 Nil)))))))))
+        (Cons p1
+          (Cons p2
+            (Cons p3
+              (Cons p4
+                (Cons p5
+                  (Cons p6
+                    (Cons p7 (Cons p8 (Cons p9 Nil)))))))))
+        (Cons d1
+          (Cons d2
+            (Cons d3
+              (Cons d4
+                (Cons d5
+                  (Cons d6
+                    (Cons d7 (Cons d8 (Cons d9 Nil)))))))))
 end

@@ -1,0 +1,38 @@
+module Cramervonmises_test
+  use cameleerBHL.CameleerBHL
+  use cramervonmises.Cramervonmises
+
+  let function p1 = UnknownD "p1"
+  let function p2 = NormalD (Param "m") (Param "v")
+  let function p_null = CategoricalD (Cons (Const 0.3) (Cons (Const 0.7) Nil))
+
+  let ex_cramervonmises (d : dataset real) : real
+  requires {
+    is_empty !st /\
+    sampled d p1 /\ d.scale = Interval /\
+    (World !st interp) |= Possible (p1 $!=^ p_null)
+  } ensures {
+    let p = result in
+    Eq p = compose_pvs (p1 $!=^ p_null) !st &&
+    (World !st interp) |= StatB (Eq p) (p1 $!=^ p_null)
+  }
+  = exec_cramervonmises p1 p_null d
+
+  let function p3 = UnknownD "p3"
+
+  let ex_cramervonmises_2samp (d2 d3: dataset real) : real
+  requires {
+    independent d2 d3 /\
+    is_empty !st /\
+    sampled d2 p2 /\ sampled d3 p3 /\
+    d2.scale = Interval /\ d3.scale = Interval /\
+    (World !st interp) |= is_continuous p2 /\
+    (World !st interp) |= is_continuous p3 /\
+    (World !st interp) |= Possible (p2 $!=^ p3)
+  } ensures {
+    let p = result in
+    Eq p = compose_pvs (p2 $!=^ p3) !st &&
+    (World !st interp) |= StatB (Eq p) (p2 $!=^ p3)
+  }
+  = exec_cramervonmises_2samp p2 p3 d2 d3
+end

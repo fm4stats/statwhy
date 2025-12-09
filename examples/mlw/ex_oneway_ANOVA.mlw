@@ -1,6 +1,6 @@
-module Oneway_example
+module Oneway_ANOVA_example
   use cameleerBHL.CameleerBHL
-  use oneway.Oneway
+  use oneway_ANOVA.Oneway_ANOVA
   
   let function p1 = NormalD (Param "m1") (Param "v")
   let function p2 = NormalD (Param "m2") (Param "v")
@@ -10,9 +10,11 @@ module Oneway_example
   let function t_m2 = mean p2
   let function t_m3 = mean p3
   
-  let ex_oneway (d1 d2 d3 : (list real))
+  let ex_oneway_ANOVA (d1 d2 d3 : dataset real)
   (* Executes oneway ANOVA for 3 population means *)
-    requires { is_empty !st /\
+    requires { for_all (fun d -> d.scale = Interval) (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               independent_list (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+               is_empty !st /\
                for_all2
                  (fun p y -> sampled y p)
                  (Cons p1 (Cons p2 (Cons p3 Nil)))
@@ -30,5 +32,5 @@ module Oneway_example
       Eq p = compose_pvs h !st &&
       (World !st interp) |= StatB (Eq p) h
     }
-    = exec_oneway (Cons p1 (Cons p2 (Cons p3 Nil))) (Cons d1 (Cons d2 (Cons d3 Nil)))
+    = exec_oneway_ANOVA (Cons p1 (Cons p2 (Cons p3 Nil))) (Cons d1 (Cons d2 (Cons d3 Nil)))
 end

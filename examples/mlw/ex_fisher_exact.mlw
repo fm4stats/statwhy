@@ -1,0 +1,42 @@
+module Ex_fisher_exact
+  use cameleerBHL.CameleerBHL
+  use fisher_exact.Fisher_exact
+  
+  let function p1 : real_number = Param "p1"
+  let function p2 : real_number = Param "p2"
+  let function p3 : real_number = Param "p3"
+  let function p4 : real_number = Param "p4"
+
+  let function p1' : real_number = Param "p1'"
+  let function p2' : real_number = Param "p2'"
+  let function p3' : real_number = Param "p3'"
+  let function p4' : real_number = Param "p4'"
+  
+  let function p = CategoricalD (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil))))
+
+  let function p' = CategoricalD (Cons p1' (Cons p2' (Cons p3' (Cons p4' Nil))))
+  
+  let function h = Not (independent_dist p p')
+
+  val function y1: list int
+  val function y2: list int
+  val function y3: list int
+  val function y4: list int
+
+  let function ys = { data = Cons y1 (Cons y2 (Cons y3 (Cons y4 Nil))); scale = Unspecified }
+
+  let ex_fisher_exact ()
+    requires { is_empty !st /\
+               sampled2 ys p p' /\
+               length y1 = length y2 = length y3 = length y4 = 4 /\
+               is_prob_dist (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) (World !st interp) /\
+               is_prob_dist (Cons p1' (Cons p2' (Cons p3' (Cons p4' Nil)))) (World !st interp) /\
+               (World !st interp) |= Possible h
+             }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs h !st &&
+      (World !st interp) |= StatB (Eq p) h
+    }
+    = exec_fisher_exact p p' ys
+end

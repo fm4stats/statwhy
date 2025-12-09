@@ -5,8 +5,10 @@ module Wilcoxon
   let function p1 = UnknownD "p1"
   let function p2 = UnknownD "p2"
   
-  let ex_wilcoxon (d1 : list real) (d2 : list real) : real
+  let ex_wilcoxon (d1 : dataset real) (d2 : dataset real) : real
   requires {
+    d1.scale = d2.scale = Interval /\
+    paired d1 d2 /\
     is_empty !st /\
     sampled d1 p1 /\ sampled d2 p2 /\
     paired d1 d2 /\
@@ -18,5 +20,5 @@ module Wilcoxon
     Eq p = compose_pvs (mean p1 $!= mean p2) !st &&
     (World !st interp) |= StatB (Eq p) (mean p1 $!= mean p2)
   }
-  = exec_wilcoxon p1 p2 (d1, d2) Two
+  = exec_wilcoxon p1 p2 d1 d2 Two
 end
