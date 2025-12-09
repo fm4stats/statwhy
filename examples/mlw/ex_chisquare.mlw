@@ -46,5 +46,5 @@ module Chi_square_example
       Eq p = compose_pvs h !st &&
       (World !st interp) |= StatB (Eq p) h
     }
-    = exec_chisquare_test p (Cons q1 (Cons q2 (Cons q3 (Cons q4 Nil)))) d false
+    = exec_chisquare_test p (Cons q1 (Cons q2 (Cons q3 (Cons q4 Nil)))) d
 end

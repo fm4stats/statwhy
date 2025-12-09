@@ -1,7 +1,0 @@
-
-* 3. Why3 by Examples
-- clone は抽象的な型を代入して、全ての declaration のコピーを作る。
-
-
-* 6. The WhyML Language Reference
-- 仮説検定のコマンドは抽象的な関数として定義しておき、その性質を axiom として

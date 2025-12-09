@@ -7,6 +7,7 @@ module Ftest
   requires {
     (World !st interp) |= is_normal dist1 /\
     (World !st interp) |= is_normal dist2 /\
+    scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
     independent y1 y2 /\ sampled y1 dist1 /\ sampled y2 dist2 /\
     ((World !st interp) |= Disj (Not (check_variance dist1)) (Not (check_variance dist2))) /\
     match alt with
