@@ -8,7 +8,6 @@ module Hof
     | Nil      -> acc
     | Cons x r -> fold f (f acc x) r
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function fold
 
   let rec function foldr (f : 'b -> 'a -> 'b) (acc : 'b) (lst : list 'a) : 'b
@@ -16,7 +15,6 @@ module Hof
     | Nil      -> acc
     | Cons x r -> f (foldr f acc r) x
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function foldr
 
   lemma fold__append:
@@ -28,12 +26,10 @@ module Hof
     | Nil -> Nil
     | Cons x xs -> Cons (f x) (map f xs)
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function map
 
   let function for_all (p: 'a -> bool) (l:list 'a) : bool
   = fold (fun acc t -> acc && p t) true l
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function for_all
 
   lemma for_all_correctness:
@@ -43,15 +39,17 @@ module Hof
   use list.Combine
   use list.Length
 
+  meta "rewrite_def" function combine
+
   let function for_all2 (p: 'a -> 'b -> bool) (l:list 'a) (r:list 'b) : bool
   = fold (fun acc t -> let (x, y) = t in acc && p x y) true (combine l r)
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function for_all2
 
   let function for_some (p: 'a -> bool) (l:list 'a) : bool
   = fold (fun acc x -> acc || p x) false l
+  meta "rewrite_def" function for_some
 
   let function mem_list (eq:'a -> 'a -> bool) (x:'a) (l:list 'a) : bool
   = for_some (eq x) l
-  meta "compute_max_steps" 1_000_000
+  meta "rewrite_def" function mem_list
 end

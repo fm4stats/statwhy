@@ -1,0 +1,19 @@
+module Mannwhitneyu
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.mannwhitneyu.html *)
+  val exec_mannwhitneyu (d1 d2 : distribution) (y1 y2 : dataset real): real
+  writes { st }
+  requires {
+    independent y1 y2 /\ scale_leq Ordinal y1.scale /\ scale_leq Ordinal y2.scale /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    (World !st interp) |= Possible (d1 $!=^ d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let alt_h = d1 $!=^ d2 in
+    !st = Cons ("mannwhitneyu", (d1 $!=^ d2), Eq pv) !(old st)
+  } 
+  (* Note: scipy.stats.mannwhitneyu can also conduct one-sided tests, but we are dubious about their correctness (and other similar one-sided tests such as ranksums and bws_test).
+     In particular, we doubt that the alternative hypothesis S_X(u) < S_Y(u) (for any u) can be derived by rejecting the null hypothesis X = Y. *)
+end

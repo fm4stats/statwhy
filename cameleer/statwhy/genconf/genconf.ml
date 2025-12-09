@@ -17,7 +17,8 @@ let temp = String.trim "
 [strategy]
 code = \"
 init:
-t compute_in_goal_statwhy start
+t subst_all_statwhy init
+t compute_specified_statwhy start
 g start
 
 start:
@@ -39,6 +40,32 @@ c CVC5,??? 60. 4000
 desc = \"Automatic@ run@ of@ provers@ and@ the@ transformations@ which@ are@ specialized@ to@ StatWhy\"
 name = \"StatWhy\"
 shortcut = \"4\"
+
+[strategy]
+code = \"
+init:
+t compute_in_goal_statwhy start
+g start
+
+start:
+c CVC5,??? 1. 1000
+t split_vc start
+c CVC5,??? 5. 1000
+t introduce_premises afterintro
+
+afterintro:
+t split_goal_full afterintro
+t compute_in_goal_statwhy afterintro
+t subst_all_statwhy afterintro
+t split_goal_full start
+g trylongertime
+
+trylongertime:
+c CVC5,??? 60. 4000
+\"
+desc = \"Automatic@ run@ of@ provers@ and@ the@ aggressive@ transformations@ which@ are@ specialized@ to@ StatWhy\"
+name = \"StatWhy_aggressive\"
+shortcut = \"5\"
 "
 
 let generate_conf_file () =

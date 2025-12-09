@@ -4,31 +4,26 @@ module Real
   use statELHT.LanguageELTH
   use list.List
   use real.Real
-  
+
+  (* predicates on real numbers *)
   let function ($<) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred "<" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($<)
-
+  
   let function ($>) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred ">" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($>)
-
+  
   let function ($=) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred "=" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($=)
-
+  
   let function ($!=) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred "!=" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($!=)
   
   let function ($<=) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred "<=" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($<=)
-
+  
   let function ($>=) (t1 : real_term) (t2 : real_term) : formula
   = Atom (Pred ">=" (Cons (RealT t1) (Cons (RealT t2) Nil)))
-  meta "rewrite_def" function ($>=)
-
+  
   axiom Atom_nil : forall w : world.
     (w |= Atom (Pred "nil" Nil)) <-> false
 
@@ -99,15 +94,87 @@ module Real
       
 end
 
-module Ppl
+module Dist
   use logicalFormula.LanguageData
   use statELHT.LanguageELTH
   use Real
 
-  predicate sampled (y : dataset 'a) (p : population)
-  = (ppl y) = p
+  val predicate sampled (y : dataset 'a) (d : distribution)
   (* this is a *meta* predicate (not expressible in BHL) *)
+  (* [sampled y d] specifies that a dataset y is sampled from a distribution d. *)
+  (* When the scale of y is Unspecified, we specify that sampled y p implies that "y is calculated using a dataset sampled from p". *)
 
+  axiom sampled_uniqueness:
+    forall y: dataset 'a, d1 d2: distribution. sampled y d1 -> sampled y d2 -> d1 = d2
+
+  val predicate sampled2 (y: dataset 'a) (d1 d2: distribution)
+  (* [sampled2 y d1 d2] specifies that a dataset y is sampled from a joint distribution whose marginal distributions are d1 d2. *)
+
+  axiom sampled2_uniqueness:
+    forall y: dataset 'a, d1 d2 d3 d4: distribution. sampled2 y d1 d2 -> sampled2 y d3 d4 -> d1 = d3 /\ d2 = d4
+
+  let rec function is_const_list (ss : list real_number) : bool
+  = match ss with
+    | Nil        -> true
+    | Cons s ss' -> match s with
+                    | Const _ -> is_const_list ss'
+                    | _       -> false
+                    end
+    end
+
+  (* [is_known dist] specifies that a distribution dist does not have any unknown parameters. *)
+  predicate is_known (dist : distribution) =
+  match dist with
+  | NormalD s1 s2 ->
+      match (s1, s2) with
+      | (Const _, Const _) -> true
+      | _ -> false
+      end
+  | ExponentialD loc scale ->
+      match (loc, scale) with
+      | (Const _, Const _) -> true
+      | _ -> false
+      end
+  | LogisticD loc scale ->
+      match (loc, scale) with
+      | (Const _, Const _) -> true
+      | _ -> false
+      end
+  (* | GumbelLD loc scale -> *)
+  (*     match (loc, scale) with *)
+  (*     | (Const _, Const _) -> true *)
+  (*     | _ -> false *)
+  (*     end *)
+  (* | GumbelRD loc scale -> *)
+  (*     match (loc, scale) with *)
+  (*     | (Const _, Const _) -> true *)
+  (*     | _ -> false *)
+  (*     end *)
+  (* | WeibullMinD c loc scale -> *)
+  (*     match (c, loc, scale) with *)
+  (*     | (Const _, Const _, Const _) -> true *)
+  (*     | _ -> false *)
+  (*     end *)
+  | ContUniformD loc scale ->
+      match (loc, scale) with
+      | (Const _, Const _) -> true
+      | _ -> false
+      end
+  | GammaD a loc scale ->
+      match (a, loc, scale) with
+      | (Const _, Const _, Const _) -> true
+      | _ -> false
+      end
+  | CategoricalD ss ->
+      is_const_list ss
+  | PoissonD mu loc scale ->
+      match (mu, loc, scale) with
+      | (Const _, Const _, Const _) -> true
+      | _ -> false
+      end
+  | UnknownD _ -> false
+  end
+  
   (* Normal Distribution *)
   axiom normal_distribution_mean:
     forall m v : real_number, w : world.
@@ -118,50 +185,51 @@ module Ppl
       w |= (var (NormalD m v) $= Real v)
 
   (* Bernoulli Distribution *)
-  val function bernoullip (population) : real_term
+  val function bernoullip (distribution) : real_term
 
-  axiom bernoullip_def [@rewrite]:
-    forall p : real_number.
-    bernoullip (BernoulliD p) = Real p
+  axiom bernoullip_def:
+    forall p : real_number, w : world.
+    w |= (bernoullip (CategoricalD (Cons p Nil)) $= Real p)
 
 
   (* Predicates related to variance *)
   
-  let function check_variance (p : population) : formula =
-    Atom (Pred "check_variance" (Cons (PopulationT p) Nil))
+  let function check_variance (p : distribution) : formula =
+    Atom (Pred "check_variance" (Cons (DistributionT p) Nil))
+  (* [check_variance p] specifies that the variance of p is checked and known. *)
   
-  axiom check_variance_def : forall p : population, s: int, w : world.
+  axiom check_variance_def : forall p : distribution, s: int, w : world.
     (w |= check_variance p) <-> exists r : real. w |= Know (var p $= const_term r)
 
-  lemma Ppl_check_variance_normald_const:
+  lemma Dist_check_variance_normald_const:
     forall mean : real_number, s : real, w : world.
       w |= (check_variance (NormalD mean (Const s)))
 
-  lemma Ppl_check_variance_normald_param:
+  lemma Dist_check_variance_normald_param:
     forall mean : real_number, s : parameter, w : world.
       not (w |= check_variance (NormalD mean (Param s)))
 
-  let function eq_variance (p1 p2 : population) : formula =
+  let function eq_variance (p1 p2 : distribution) : formula =
     Atom (Pred "eq_variance" 
-           (Cons (PopulationT p1) 
-           (Cons (PopulationT p2) Nil)))
+           (Cons (DistributionT p1) 
+           (Cons (DistributionT p2) Nil)))
 
   use Real
 
-  axiom eq_variance_def : forall p1 p2 : population, w : world.
+  axiom eq_variance_def : forall p1 p2 : distribution, w : world.
     w |= eq_variance p1 p2 <-> w |= Know (var p1 $= var p2)
 
   lemma Eq_variance_ref:
-    forall p : population, w : world.
+    forall p : distribution, w : world.
     w |= eq_variance p p
 
   lemma Eq_variance_sym:
-    forall p1 p2 : population, w : world.
+    forall p1 p2 : distribution, w : world.
     w |= eq_variance p1 p2 -> w |= eq_variance p2 p1
 
   lemma Eq_variance_assoc:
-    forall p1 p2 p3 : population, w : world.
-    w |= eq_variance p1 p2 /\ w |= eq_variance p2 p3 -> w |= eq_variance p1 p3
+    forall p1 p2 p3 : distribution, w : world.
+    w |= eq_variance p1 p2 -> w |= eq_variance p2 p3 -> w |= eq_variance p1 p3
 
   lemma Eq_variance_same_var:
     forall m n v : real_number, w : world.
@@ -172,13 +240,13 @@ module Ppl
                           w |= (var (NormalD m v) $= var (NormalD n v))
     )
 
-  val predicate eq_mean population population
+  val predicate eq_mean distribution distribution
 
-  axiom Ppl_eq_mean : forall p1 p2 : population.
+  axiom Dist_eq_mean : forall p1 p2 : distribution.
     eq_mean p1 p2 <-> forall w : world. w |= (mean p1 $= mean p2)
 
   scope Eq_mean
-  clone export relations.Equivalence with type t = population, predicate rel = eq_mean
+  clone export relations.Equivalence with type t = distribution, predicate rel = eq_mean
   end
 
   lemma Eq_variance_same_mean:
@@ -201,6 +269,7 @@ module Ppl
         let s = fold (fun acc r -> acc + (i (Real r))) 0.0 l in
         0.99 <= s <= 1.01
     end
+    (* is_prob_dist [p1; p2; ...; pn] w <-> w |= p1 + p2 + ... + pn ~ 1 *)
 
   predicate is_prob_dist_const [@rewrite] (l : list real) =
     let s = fold (+) 0.0 l in
@@ -215,12 +284,10 @@ module Ppl
   )
   (* TODO: Prove this *)
 
-  lemma test_prob_dist:
-    forall w : world.
-    is_prob_dist (Cons (Const 0.1) (Cons (Const 0.9) Nil)) w
-
- 
-  (* Predicate for tests of normality *)
+  (* lemma test_prob_dist: *)
+  (*   forall w : world. *)
+  (*   is_prob_dist (Cons (Const 0.1) (Cons (Const 0.9) Nil)) w *)
+  (* (\* Predicate for tests of normality *\) *)
 
   predicate eq_real_number_list' (w : world) (rs1 rs2 : list real_number) =
     match (rs1, rs2) with
@@ -228,8 +295,7 @@ module Ppl
     | (Nil, Nil) -> true
     | _ -> false
     end
-  meta "rewrite_def" predicate eq_real_number_list
-
+  
   lemma eq_real_number_list'_refl:
     forall p : list real_number, w : world. eq_real_number_list' w p p
 
@@ -245,85 +311,483 @@ module Ppl
     forall p1 p2 : list real_number, w : world.
     eq_real_number_list p1 p2 -> eq_real_number_list' w p1 p2
 
-  let function ($=^) (p1 p2 : population) : formula =
-    Atom (Pred "eq_p" (Cons (PopulationT p1) (Cons (PopulationT p2) Nil)))
+
+  (* predicate for the equality of two populations *)
+  let function ($=^) (p1 p2 : distribution) : formula =
+    Atom (Pred "eq_p" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
 
   (* axiom eq_p_interp: *)
-  (*   forall p1 p2 : population, w : world. *)
+  (*   forall p1 p2 : distribution, w : world. *)
   (*   w |= (p1 $=^ p2) *)
   (*   <-> match (p1, p2) with *)
   (*       | (NormalD s1 s2, NormalD t1 t2) -> w |= (Real s1 $= Real t1) && w |= (Real s2 $= Real t2) *)
-  (*       | (BernoulliD s, BernoulliD t) -> w |= (Real s $= Real t) *)
   (*       | (UnknownD i, UnknownD j) -> OCaml.(i = j) *)
   (*       | (CategoricalD pp, CategoricalD qq) -> eq_real_number_list' w pp qq *)
   (*       | _ -> false *)
   (*       end *)
 
+  (* NormalD  *)
   axiom eq_p_interp_NormalD:
     forall s1 s2 t1 t2 : real_number, w : world.
     w |= (NormalD s1 t1 $=^ NormalD s2 t2) <-> w |= (Real s1 $= Real s2) && w |= (Real t1 $= Real t2)
 
-  axiom eq_p_interp_BernoulliD:
-    forall s t : real_number, w : world.
-    w |= (BernoulliD s $=^ BernoulliD t) <-> w |= (Real s $= Real t)
-
-  axiom eq_p_interp_UnknownD:
-    forall i j : string, w : world. 
-    w |= (UnknownD i $=^ UnknownD j) <-> OCaml.(i = j)
-
+  (* ExponentialD *)
+  axiom eq_p_interp_ExponentialD:
+    forall l1 s1 l2 s2 : real_number, w : world.
+    w |= (ExponentialD l1 s1 $=^ ExponentialD l2 s2) <->
+         w |= (Real l1 $= Real l2) && w |= (Real s1 $= Real s2)
+  
+  (* LogisticD *)
+  axiom eq_p_interp_LogisticD:
+    forall l1 s1 l2 s2 : real_number, w : world.
+    w |= (LogisticD l1 s1 $=^ LogisticD l2 s2) <->
+         w |= (Real l1 $= Real l2) && w |= (Real s1 $= Real s2)
+  
+  (* (\* GumbelLD *\) *)
+  (* axiom eq_p_interp_GumbelLD: *)
+  (*   forall l1 s1 l2 s2 : real_number, w : world. *)
+  (*   w |= (GumbelLD l1 s1 $=^ GumbelLD l2 s2) <-> *)
+  (*        w |= (Real l1 $= Real l2) && w |= (Real s1 $= Real s2) *)
+  
+  (* (\* GumbelRD *\) *)
+  (* axiom eq_p_interp_GumbelRD: *)
+  (*   forall l1 s1 l2 s2 : real_number, w : world. *)
+  (*   w |= (GumbelRD l1 s1 $=^ GumbelRD l2 s2) <-> *)
+  (*        w |= (Real l1 $= Real l2) && w |= (Real s1 $= Real s2) *)
+  
+  (* (\* WeibullMinD *\) *)
+  (* axiom eq_p_interp_WeibullMinD: *)
+  (*   forall c1 l1 s1 c2 l2 s2 : real_number, w : world. *)
+  (*   w |= (WeibullMinD c1 l1 s1 $=^ WeibullMinD c2 l2 s2) <-> *)
+  (*        w |= (Real c1 $= Real c2) && *)
+  (*        w |= (Real l1 $= Real l2) && *)
+  (*        w |= (Real s1 $= Real s2) *)
+  
+  (* ContUniformD *)
+  axiom eq_p_interp_ContUniformD:
+    forall l1 s1 l2 s2 : real_number, w : world.
+    w |= (ContUniformD l1 s1 $=^ ContUniformD l2 s2) <->
+         w |= (Real l1 $= Real l2) && w |= (Real s1 $= Real s2)
+  
+  (* GammaD *)
+  axiom eq_p_interp_GammaD:
+    forall a1 l1 s1 a2 l2 s2 : real_number, w : world.
+    w |= (GammaD a1 l1 s1 $=^ GammaD a2 l2 s2) <->
+         w |= (Real a1 $= Real a2) &&
+         w |= (Real l1 $= Real l2) &&
+         w |= (Real s1 $= Real s2)
+  
+  (* CategoricalD *)
   axiom eq_p_interp_CategoricalD:
     forall pp qq : list real_number, w : world.
     w |= (CategoricalD pp $=^ CategoricalD qq) <-> eq_real_number_list' w pp qq
 
+  (* PoissonD *)
+  axiom eq_p_interp_PoissonD:
+    forall m1 l1 s1 m2 l2 s2 : real_number, w : world.
+    w |= (PoissonD m1 l1 s1 $=^ PoissonD m2 l2 s2) <->
+         w |= (Real m1 $= Real m2) &&
+         w |= (Real l1 $= Real l2) &&
+         w |= (Real s1 $= Real s2)
+
+  (* UnknownD *)
+  axiom eq_p_interp_UnknownD:
+    forall i j : string, w : world. 
+    w |= (UnknownD i $=^ UnknownD j) <-> OCaml.(i = j)
+
   lemma eq_p_refl:
-    forall p : population, w : world. w |= (p $=^ p)
+    forall p : distribution, w : world. w |= (p $=^ p)
 
   axiom eq_p_symm:
-    forall p1 p2 : population, w : world. w |= (p1 $=^ p2) <-> w |= (p2 $=^ p1)
+    forall p1 p2 : distribution, w : world. w |= (p1 $=^ p2) <-> w |= (p2 $=^ p1)
 
   axiom eq_p_trans:
-    forall p1 p2 p3 : population, w : world.
-    w |= (p1 $=^ p2) /\ w |= (p2 $=^ p3)
-    -> w |= (p1 $=^ p3)
+    forall p1 p2 p3 : distribution, w : world.
+    w |= (p1 $=^ p2) -> w |= (p2 $=^ p3) -> w |= (p1 $=^ p3)
 
-  let function ($!=^) (p1 p2 : population) : formula =
-    Atom (Pred "!=^" (Cons (PopulationT p1) (Cons (PopulationT p2) Nil)))
+  let function ($!=^) (p1 p2 : distribution) : formula =
+    Atom (Pred "!=^" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
 
   axiom neq_p_def:
-    forall p1 p2 : population, w : world.
+    forall p1 p2 : distribution, w : world.
     w |= (p1 $!=^ p2) <-> not w |= (p1 $=^ p2)
 
-  lemma eq_population_soundness:
-    forall p1 p2 : population, w : world.
-      eq_population p1 p2 -> w |= (p1 $=^ p2)
+  lemma eq_distribution_soundness:
+    forall p1 p2 : distribution, w : world.
+      eq_distribution p1 p2 -> w |= (p1 $=^ p2)
 
-  let function is_normal (p : population) : formula =
-    Atom (Pred "is_normal" (Cons (PopulationT p) Nil))
+  (* Predicates for goodness of fit *)
+
+  (* Normal *)
+  let function is_normal (p : distribution) : formula =
+    Atom (Pred "is_normal" (Cons (DistributionT p) Nil))
 
   axiom is_normal_interp:
-    forall p : population, w : world.
+    forall p : distribution, w : world.
       w |= (is_normal p) <-> (exists m v : real_number. w |= (p $=^ (NormalD m v)))
 
   lemma is_not_normal_interp:
-    forall p : population, w : world.
+    forall p : distribution, w : world.
       w |= Not (is_normal p) <-> (forall m v : real_number. w |= Not (p $=^ (NormalD m v)))
+
+  lemma normalD_is_normal:
+    forall m v : real_number, w : world . w |= (is_normal (NormalD m v))
+
+  (* Exponential *)
+  let function is_exponential (p : distribution) : formula =
+    Atom (Pred "is_exponential" (Cons (DistributionT p) Nil))
+  
+  axiom is_exponential_interp:
+    forall p : distribution, w : world.
+      w |= (is_exponential p) <->
+           (exists loc scale : real_number. w |= (p $=^ (ExponentialD loc scale)))
+  
+  lemma is_not_exponential_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_exponential p) <->
+           (forall loc scale : real_number. w |= Not (p $=^ (ExponentialD loc scale)))
+  
+  lemma exponentialD_is_exponential:
+    forall loc scale : real_number, w : world.
+      w |= (is_exponential (ExponentialD loc scale))
+  
+  
+  (* Logistic *)
+  let function is_logistic (p : distribution) : formula =
+    Atom (Pred "is_logistic" (Cons (DistributionT p) Nil))
+  
+  axiom is_logistic_interp:
+    forall p : distribution, w : world.
+      w |= (is_logistic p) <->
+           (exists loc scale : real_number. w |= (p $=^ (LogisticD loc scale)))
+  
+  lemma is_not_logistic_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_logistic p) <->
+           (forall loc scale : real_number. w |= Not (p $=^ (LogisticD loc scale)))
+  
+  lemma logisticD_is_logistic:
+    forall loc scale : real_number, w : world.
+      w |= (is_logistic (LogisticD loc scale))
+  
+  
+  (* (\* Gumbel (Left) *\) *)
+  (* let function is_gumbelL (p : distribution) : formula = *)
+  (*   Atom (Pred "is_gumbelL" (Cons (DistributionT p) Nil)) *)
+  
+  (* axiom is_gumbelL_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= (is_gumbelL p) <-> *)
+  (*          (exists loc scale : real_number. w |= (p $=^ (GumbelLD loc scale))) *)
+  
+  (* lemma is_not_gumbelL_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= Not (is_gumbelL p) <-> *)
+  (*          (forall loc scale : real_number. w |= Not (p $=^ (GumbelLD loc scale))) *)
+  
+  (* lemma gumbelLD_is_gumbelL: *)
+  (*   forall loc scale : real_number, w : world. *)
+  (*     w |= (is_gumbelL (GumbelLD loc scale)) *)
+  
+  
+  (*   (\* Gumbel (Right) *\) *)
+  (* let function is_gumbelR (p : distribution) : formula = *)
+  (*   Atom (Pred "is_gumbelR" (Cons (DistributionT p) Nil)) *)
+  
+  (* axiom is_gumbelR_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= (is_gumbelR p) <-> *)
+  (*          (exists loc scale : real_number. w |= (p $=^ (GumbelRD loc scale))) *)
+  
+  (* lemma is_not_gumbelR_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= Not (is_gumbelR p) <-> *)
+  (*          (forall loc scale : real_number. w |= Not (p $=^ (GumbelRD loc scale))) *)
+  
+  (* lemma gumbelRD_is_gumbelR: *)
+  (*   forall loc scale : real_number, w : world. *)
+  (*     w |= (is_gumbelR (GumbelRD loc scale)) *)
+  
+  
+  (* (\* WeibullMin *\) *)
+  (* let function is_weibullMin (p : distribution) : formula = *)
+  (*   Atom (Pred "is_weibullMin" (Cons (DistributionT p) Nil)) *)
+  
+  (* axiom is_weibullMin_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= (is_weibullMin p) <-> *)
+  (*          (exists c loc scale : real_number. w |= (p $=^ (WeibullMinD c loc scale))) *)
+  
+  (* lemma is_not_weibullMin_interp: *)
+  (*   forall p : distribution, w : world. *)
+  (*     w |= Not (is_weibullMin p) <-> *)
+  (*          (forall c loc scale : real_number. w |= Not (p $=^ (WeibullMinD c loc scale))) *)
+  
+  (* lemma weibullMinD_is_weibullMin: *)
+  (*   forall c loc scale : real_number, w : world. *)
+  (*     w |= (is_weibullMin (WeibullMinD c loc scale)) *)
+  
+  
+  (* Uniform *)
+  let function is_uniform (p : distribution) : formula =
+    Atom (Pred "is_uniform" (Cons (DistributionT p) Nil))
+  
+  axiom is_uniform_interp:
+    forall p : distribution, w : world.
+      w |= (is_uniform p) <->
+           (exists loc scale : real_number. w |= (p $=^ (ContUniformD loc scale)))
+  
+  lemma is_not_uniform_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_uniform p) <->
+           (forall loc scale : real_number. w |= Not (p $=^ (ContUniformD loc scale)))
+  
+  lemma uniformD_is_uniform:
+    forall loc scale : real_number, w : world.
+      w |= (is_uniform (ContUniformD loc scale))
+  
+  
+  (* Gamma *)
+  let function is_gamma (p : distribution) : formula =
+    Atom (Pred "is_gamma" (Cons (DistributionT p) Nil))
+  
+  axiom is_gamma_interp:
+    forall p : distribution, w : world.
+      w |= (is_gamma p) <->
+           (exists a loc scale : real_number. w |= (p $=^ (GammaD a loc scale)))
+  
+  lemma is_not_gamma_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_gamma p) <->
+           (forall a loc scale : real_number. w |= Not (p $=^ (GammaD a loc scale)))
+  
+  lemma gammaD_is_gamma:
+    forall a loc scale : real_number, w : world.
+      w |= (is_gamma (GammaD a loc scale))
+  
+  
+  (* Categorical *)
+  let function is_categorical (p : distribution) : formula =
+    Atom (Pred "is_categorical" (Cons (DistributionT p) Nil))
+  
+  axiom is_categorical_interp:
+    forall p : distribution, w : world.
+      w |= (is_categorical p) <->
+           (exists ss : list real_number. w |= (p $=^ (CategoricalD ss)))
+  
+  lemma is_not_categorical_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_categorical p) <->
+           (forall ss : list real_number. w |= Not (p $=^ (CategoricalD ss)))
+  
+  lemma categoricalD_is_categorical:
+    forall ss : list real_number, w : world.
+      w |= (is_categorical (CategoricalD ss))
+  
+  
+  (* Poisson *)
+  let function is_poisson (p : distribution) : formula =
+    Atom (Pred "is_poisson" (Cons (DistributionT p) Nil))
+  
+  axiom is_poisson_interp:
+    forall p : distribution, w : world.
+      w |= (is_poisson p) <->
+           (exists mu loc scale : real_number. w |= (p $=^ (PoissonD mu loc scale)))
+  
+  lemma is_not_poisson_interp:
+    forall p : distribution, w : world.
+      w |= Not (is_poisson p) <->
+           (forall mu loc scale : real_number. w |= Not (p $=^ (PoissonD mu loc scale)))
+  
+  lemma poissonD_is_poisson:
+    forall mu loc scale : real_number, w : world.
+    w |= (is_poisson (PoissonD mu loc scale))
+
+
+  (* the skewness of the normal distribution is 0 *)
+  axiom normal_distribution_skew:
+    forall d: distribution, w : world.
+      w |= (is_normal d) -> w |= (skew d $= const_term 0.0)
+
+  lemma normal_distribution_skew':
+    forall m v : real_number, w : world.
+      w |= (skew (NormalD m v) $= const_term 0.0)
+
+  (* the kurtosis of the normal distribution is 0 *)
+  axiom normal_distribution_kurtosis:
+    forall d: distribution, w : world.
+      w |= (is_normal d) -> w |= (kurtosis d $= const_term 0.0)
+
+  lemma normal_distribution_kurtosis':
+    forall m v : real_number, w : world.
+      w |= (kurtosis (NormalD m v) $= const_term 0.0)
+
+  (* is_bernoulli *)
+  let function is_bernoulli (p : distribution) : formula =
+    Atom (Pred "is_bernoulli" (Cons (DistributionT p) Nil))
+
+  axiom is_bernoulli_interp:
+    forall p : distribution, w : world.
+      w |= (is_bernoulli p) <-> (exists r : real_number. w |= (p $=^ (CategoricalD (Cons r Nil))))
+
+  lemma dichotomous_CategoricalD_is_bernoulli:
+    forall r: real_number, w: world. w |= (is_bernoulli (CategoricalD (Cons r Nil)))
+
+
+  (* predicate for stochastic ordering *)
+  let function ($<=^) (p1 p2 : distribution) : formula =
+    Atom (Pred "<=^" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
+
+  axiom leq_p_refl:
+    forall p : distribution, w : world. w |= (p $<=^ p)
+
+  axiom leq_p_antisymm:
+    forall p1 p2 : distribution, w : world. w |= (p1 $<=^ p2) /\ w |= (p2 $<=^ p1) -> w |= (p2 $=^ p1)
+
+  axiom leq_p_trans:
+    forall p1 p2 p3 : distribution, w : world.
+    w |= (p1 $<=^ p2) -> w |= (p2 $<=^ p3) -> w |= (p1 $<=^ p3)
+
+  let function ($>=^) (p1 p2 : distribution) : formula =
+    Atom (Pred ">=^" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
+
+  axiom geq_p_def:
+    forall p1 p2 : distribution, w : world. w |= (p1 $>=^ p2) <-> w |= (p2 $<=^ p1)
+
+  let function ($>^) (p1 p2 : distribution) : formula =
+    Atom (Pred ">^" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
+
+  axiom gt_p_def:
+    forall p1 p2 : distribution, w : world. w |= (p1 $>^ p2) <-> w |= (p1 $>=^ p2) /\ w |= (p1 $!=^ p2)
+
+  let function ($<^) (p1 p2 : distribution) : formula =
+    Atom (Pred "<^" (Cons (DistributionT p1) (Cons (DistributionT p2) Nil)))
+
+  axiom lt_p_def:
+    forall p1 p2 : distribution, w : world. w |= (p1 $<^ p2) <-> w |= (p1 $<=^ p2) /\ w |= (p1 $!=^ p2)
+
+
+  (* distribution type *)
+
+  (* continuous *)
+  let function is_continuous (d: distribution): formula =
+    Atom (Pred "is_continuous" (Cons (DistributionT d) Nil))
+
+
+  (* discrete *)
+  let function is_discrete (d: distribution): formula =
+    Atom (Pred "is_discrete" (Cons (DistributionT d) Nil))
+
+  (* NormalD *)
+  axiom normalD_is_continuous:
+    forall w: world, d: distribution, mu var: real_number.
+      w |= (d $=^ (NormalD mu var)) -> w |= is_continuous d
+  
+  (* ExponentialD *)
+  axiom exponentialD_is_continuous:
+    forall w: world, d: distribution, loc scale: real_number.
+      w |= (d $=^ (ExponentialD loc scale)) -> w |= is_continuous d
+  
+  (* LogisticD *)
+  axiom logisticD_is_continuous:
+    forall w: world, d: distribution, loc scale: real_number.
+      w |= (d $=^ (LogisticD loc scale)) -> w |= is_continuous d
+  
+  (* (\* GumbelLD *\) *)
+  (* axiom gumbelLD_is_continuous: *)
+  (*   forall w: world, d: distribution, loc scale: real_number. *)
+  (*     w |= d $=^ (GumbelLD loc scale) -> w |= is_continuous d *)
+  
+  (* (\* GumbelRD *\) *)
+  (* axiom gumbelRD_is_continuous: *)
+  (*   forall w: world, d: distribution, loc scale: real_number. *)
+  (*     w |= d $=^ (GumbelRD loc scale) -> w |= is_continuous d *)
+  
+  (* (\* WeibullMinD *\) *)
+  (* axiom weibullMinD_is_continuous: *)
+  (*   forall w: world, d: distribution, c loc scale: real_number. *)
+  (*     w |= d $=^ (WeibullMinD c loc scale) -> w |= is_continuous d *)
+  
+  (* ContUniformD *)
+  axiom uniformD_is_continuous:
+    forall w: world, d: distribution, loc scale: real_number.
+      w |= (d $=^ (ContUniformD loc scale)) -> w |= is_continuous d
+  
+  (* GammaD *)
+  axiom gammaD_is_continuous:
+    forall w: world, d: distribution, a loc scale: real_number.
+      w |= (d $=^ (GammaD a loc scale)) -> w |= is_continuous d
+  
+  (* CategoricalD *)
+  axiom categoricalD_is_discrete:
+    forall w: world, d: distribution, ps: list real_number.
+      w |= (d $=^ (CategoricalD ps)) -> w |= is_discrete d
+  
+  (* PoissonD *)
+  axiom poissonD_is_discrete:
+    forall w: world, d: distribution, mu loc scale: real_number.
+      w |= (d $=^ (PoissonD mu loc scale)) -> w |= is_discrete d
+
+  (* is_continuous and is_discrete are mutually exclusive *)
+  axiom continuous_discrete_exclusive:
+    forall w: world, d: distribution.
+      w |= is_continuous d -> w |= Not (is_discrete d)
+  
+  axiom discrete_continuous_exclusive:
+    forall w: world, d: distribution.
+      w |= is_discrete d -> w |= Not (is_continuous d)
+
+
+  (* independence of two distributions *)
+  let function independent_dist (d1 d2: distribution): formula =
+    Atom (Pred "independent_dist" (Cons (DistributionT d1) (Cons (DistributionT d1) Nil)))
+
+  axiom independent_dist_symm:
+    forall w:world, d1 d2: distribution. w |= independent_dist d1 d2 <-> w |= independent_dist d2 d1
+
+  axiom independent_dist_not_refl: forall w:world, y: distribution. w |= Not (independent_dist y y)
 end
 
 module Paired
   use logicalFormula.Dataset
+  use int.Int
   use list.List
+  use list.Length
+  use list.NthNoOpt
+  use list.Mem
 
-  val predicate paired (y1 y2 : dataset (list 'a))
+  val predicate paired (y1 y2 : dataset 'a)
 
-  axiom paired_symm : forall y1 y2 : dataset (list 'a).
+  axiom paired_symm : forall y1 y2 : dataset 'a.
     paired y1 y2 <-> paired y2 y1
 
-  axiom paired_trans : forall y1 y2 y3 : dataset (list 'a).
+  axiom paired_trans : forall y1 y2 y3 : dataset 'a.
     paired y1 y2 /\ paired y2 y3 -> paired y1 y3
 
-  predicate non_paired (y1 y2 : dataset (list 'a)) =
-    not (paired y1 y2)
+  val predicate independent (y1 y2: dataset 'a)
 
-  lemma non_paired_symm : forall y1 y2 : dataset (list 'a).
-    non_paired y1 y2 <-> non_paired y2 y1
+  axiom independent_symm: forall y1 y2: dataset 'a.
+    independent y1 y2 <-> independent y2 y1
+
+  axiom independent_samples_are_not_paired:
+    forall y1 y2: dataset 'a.
+      independent y1 y2 -> not (paired y1 y2)
+
+  axiom independent_not_refl: forall y: dataset 'a. not (independent y y)
+
+  use utility.Utility
+
+  let function independent_list (ys: list (dataset 'a))
+  = for_all (fun y -> match y with (y1,y2) -> independent y1 y2 end) (cmb ys)
+  meta "rewrite_def" function independent_list
+  (* independent_list [y_1; y_2; y_3; ...; y_n] <-> independent y_1 y_2 /\ independent y_1 y_3 /\ ... /\ independent y_(n-1) y_n *)
+
+  lemma independent_list_one_sample:
+    forall y: dataset 'a. independent_list (Cons y Nil)
+
+  val predicate repeated_sample (list (dataset 'a))
+
+  axiom repeated_sample_are_not_independent:
+    forall ys: list (dataset 'a).
+      repeated_sample ys -> forall y1 y2. mem y1 ys -> mem y2 ys -> not (independent y1 y2)
 end

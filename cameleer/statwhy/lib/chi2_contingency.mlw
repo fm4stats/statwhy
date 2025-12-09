@@ -1,0 +1,36 @@
+module Chi2_contingency
+  use cameleerBHL.CameleerBHL
+
+  predicate is_matrix (m: list (list int)) =
+    length m >= 2 /\
+    (exists w. w >= 2 /\ (for_all (fun r -> length r = w) m))
+  meta "rewrite_def" predicate is_matrix
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html *)
+  val exec_chi2_contingency (d1 d2: distribution) (yy: dataset (list int)) (correction: bool): real
+  writes { st }
+  requires {
+    match (d1, d2) with
+    | (CategoricalD ps1, CategoricalD ps2) ->
+      is_prob_dist ps1 (World !st interp) /\ is_prob_dist ps2 (World !st interp) /\
+      is_matrix yy.data /\ yy.scale = Unspecified /\ sampled2 yy d1 d2 /\
+      if correction
+      then
+        (let m = length yy.data in
+         let n = match yy.data with
+                 | Cons y1 _ -> length y1
+                 | Nil -> -1
+                 end in
+         m = 2 /\ n = 2 /\
+         for_some (fun y -> (exists x. mem x y /\ x < 5)) yy.data)
+      else
+        for_all (for_all (fun d -> d >= 5)) yy.data /\
+      (World !st interp) |= Possible (Not (independent_dist d1 d2))
+    | _ -> false
+    end
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("chi2_contingency", (Not (independent_dist d1 d2)), Eq pv) !(old st)
+  }
+end

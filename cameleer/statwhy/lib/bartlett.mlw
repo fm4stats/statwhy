@@ -1,28 +1,33 @@
 module Bartlett
   use cameleerBHL.CameleerBHL
-  
-  function bartlett_hypothesis (ppls : list population) : formula =
-  let terms = map (fun t -> RealT (var t)) ppls in
+
+  (* bartlett_hypothesis [p_1; p_2; p_3; ...; p_n] returns var p_1 $!= var p_2 $|| var p_1 $!= var p_3 $|| ... $|| var p_(n-1) $!= var p_n. *)
+  function bartlett_hypothesis (dists : list distribution) : formula =
+  let terms = map (fun t -> RealT (var t)) dists in
   let res = combinations terms "!=" in
     match res with
     | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
     | Nil -> Atom (Pred "nil" Nil)
     end
+  meta "rewrite_def" function bartlett_hypothesis
 
-  val exec_bartlett (ppls : list population) (ys : dataset (list (list real))) : real
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bartlett.html#scipy.stats.bartlett *)
+  val exec_bartlett (dists : list distribution) (ys : list (dataset real)) : real
   writes { st }
   requires {
-    length ppls = length ys /\
-    length ppls >= 2 /\ length ys >= 2 /\
-    for_all2 (fun p y -> match p with NormalD _ _ -> sampled y p | _ -> false end) ppls ys /\
+    independent_list ys /\
+    length dists = length ys /\
+    length dists >= 2 /\ length ys >= 2 /\
+    for_all2 (fun p y -> ((World !st interp) |= is_normal p) && sampled y p) dists ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
     for_all (fun x -> let (s, t) = x in
       ((World !st interp) |= Possible (var s $< var t) /\
        (World !st interp) |= Possible (var s $> var t)))
-      (combinations_poly ppls)
+      (cmb dists)
   } ensures {
     let pv = result in
     pvalue pv /\
-    let h = bartlett_hypothesis ppls in
+    let h = bartlett_hypothesis dists in
     !st = !(old st) ++ Cons ("bartlett", h, Eq pv) Nil
   }
 end

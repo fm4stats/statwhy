@@ -1,0 +1,19 @@
+module Ranksums
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ranksums.html *)
+  val exec_ranksums (d1 d2: distribution) (y1 y2: dataset real): real
+  writes { st }
+  requires {
+    independent y1 y2 /\ scale_leq Ordinal y1.scale /\ scale_leq Ordinal y2.scale /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    (World !st interp) |= (is_continuous d1) /\
+    (World !st interp) |= (is_continuous d2) /\
+    (World !st interp) |= Possible (d1 $>^ d2) /\ (World !st interp) |= Possible (d1 $<^ d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let alt_h = (d1 $>^ d2) $|| (d1 $<^ d2) in (* We omit one-sided tests. For details, check the remark in mannwhitneyu.mlw *)
+    !st = Cons ("ranksums", alt_h, Eq pv) !(old st)
+  }
+end

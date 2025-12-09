@@ -1,69 +1,42 @@
-module Fisher_cumulant_test
-  use cameleerBHL.CameleerBHL
-
-  (* Test 20 from "100 Statistical Tests" *)
-  val exec_fisher_cumulant_test (p_obs : population) (p_null : population) (y : dataset (list real)) : real
-  writes { st }
-  requires {
-    sampled y p_obs /\
-    length y > 50 /\
-    match p_null with
-    | NormalD m v ->
-      (World !st interp) |= (mean p_obs $= Real m) /\
-      (World !st interp) |= (var p_obs  $= Real v) /\
-      (World !st interp) |= Possible (p_obs $!=^ (NormalD m v))
-    | _ -> false
-    end
-  } ensures {
-    let pv = result in
-    pvalue result /\
-    match p_null with
-    | NormalD m v ->
-      !st = Cons ("fisher_cumulant_test", (p_obs $!=^ (NormalD m v)), Eq pv) !(old st)
-    | _ -> false (* unreachable *)
-    end
-  }
-end
-
 module Normality_test
   use cameleerBHL.CameleerBHL
 
-  (* Test 33 from "100 Statistical Tests" *)
-  val exec_ws_test (p : population) (y : dataset (list real)) : real
-  writes { st }
-  requires {
-    sampled y p /\
-    length y > 50 /\
-    (World !st interp) |= Possible (Not (is_normal p))
-  } ensures {
-    let pv = result in
-    pvalue result /\
-    !st = Cons ("ws_test", (Not (is_normal p)), Eq pv) !(old st)
-  }
-
   (* Based on scipy.stats.jarque_bera (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.jarque_bera.html#scipy.stats.jarque_bera) *)
-  val exec_jacque_bera_test (p : population) (y : dataset (list real)) : real
+  val exec_jacque_bera_test (d : distribution) (y : dataset real) : real
   writes { st }
   requires {
-    sampled y p /\
-    length y >= 2000 /\
-    (World !st interp) |= Possible (Not (is_normal p))
+    sampled y d /\ scale_leq Interval y.scale /\
+    length y.data >= 2000 /\
+    (World !st interp) |= Possible (Not (is_normal d))
   } ensures {
     let pv = result in
     pvalue result /\
-    !st = Cons ("jacque_bera_test", (Not (is_normal p)), Eq pv) !(old st)
+    !st = Cons ("jacque_bera_test", (Not (is_normal d)), Eq pv) !(old st)
   }
 
   (* Based on scipy.stats.shapiro (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.shapiro.html#scipy.stats.shapiro) *)
-  val exec_shapiro_wilk_test (p : population) (y : dataset (list real)) : real
+  val exec_shapiro_wilk_test (d : distribution) (y : dataset real) : real
   writes { st }
   requires {
-    sampled y p /\
-    length y >= 5000 /\
-    (World !st interp) |= Possible (Not (is_normal p))
+    sampled y d /\ scale_leq Interval y.scale /\
+    length y.data >= 5000 /\
+    (World !st interp) |= Possible (Not (is_normal d))
   } ensures {
     let pv = result in
     pvalue result /\
-    !st = Cons ("shapiro_wilk_test", (Not (is_normal p)), Eq pv) !(old st)
+    !st = Cons ("shapiro_wilk_test", (Not (is_normal d)), Eq pv) !(old st)
+  }
+
+  (* Based on scipy.stats.normaltest (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.normaltest.html#scipy.stats.normaltest) *)
+  val exec_normaltest (d : distribution) (y : dataset real) : real
+  writes { st }
+  requires {
+    sampled y d /\ scale_leq Interval y.scale /\
+    length y.data >= 8 /\
+    (World !st interp) |= Possible (Not (is_normal d))
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("normaltest", (Not (is_normal d)), Eq pv) !(old st)
   }
 end

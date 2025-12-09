@@ -27,7 +27,7 @@ depends: [
   "sexplib"
   "ppx_deriving"
   "ppx_sexp_conv"
-  "pyml" {= "20231101"}
+  # "pyml" {= "20231101"}
   ("lablgtk3" & "lablgtk3-sourceview3")
 ]
 

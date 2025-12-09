@@ -1,0 +1,17 @@
+module Kurtosistest
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kurtosistest.html#scipy.stats.kurtosistest *)
+  val exec_kurtosistest (d: distribution) (y: dataset real) : real
+  writes { st }
+  requires {
+    sampled y d /\ scale_leq Interval y.scale /\
+    (World !st interp) |= Possible (kurtosis d $< const_term 0.0) /\
+    (World !st interp) |= Possible (kurtosis d $> const_term 0.0)
+  }
+  ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("kurtosistest", (kurtosis d $!= const_term 0.0), Eq pv) !(old st)
+  }
+end

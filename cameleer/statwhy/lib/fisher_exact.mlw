@@ -1,0 +1,28 @@
+module Fisher_exact
+  use cameleerBHL.CameleerBHL
+
+  predicate is_matrix (m: list (list int)) =
+    length m >= 2 /\
+    (exists w. w >= 2 /\ (for_all (fun r -> length r = w) m))
+  meta "rewrite_def" predicate is_matrix
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.fisher_exact.html *)
+  val exec_fisher_exact (d1 d2: distribution) (yy: dataset (list int)): real
+  writes { st }
+  requires {
+    match (d1, d2) with
+    | (CategoricalD ps1, CategoricalD ps2) ->
+      is_prob_dist ps1 (World !st interp) /\ is_prob_dist ps2 (World !st interp) /\
+      is_matrix yy.data /\ yy.scale = Unspecified /\ sampled2 yy d1 d2 /\
+      (World !st interp) |= Possible (Not (independent_dist d1 d2))
+    | _ -> false
+    end
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("fisher_exact", (Not (independent_dist d1 d2)), Eq pv) !(old st)
+  }
+  (* Note: For a 2x2 table, scipy.stats.fisher_exact tests the true odds ratio. However, for simplicity,
+     exec_fisher_exact tests a weaker hypothesis -- the independence of the row and the column.
+     *)
+end

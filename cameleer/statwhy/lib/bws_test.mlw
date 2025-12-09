@@ -1,0 +1,18 @@
+module Bws_Test
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.bws_test.html *)
+  val exec_bws_test (d1 d2 : distribution) (y1 y2 : dataset real): real
+  writes { st }
+  requires {
+    sampled y1 d1 /\ sampled y2 d2 /\ independent y1 y2 /\
+    scale_leq Interval d1.scale /\ scale_leq Interval d2.scale /\
+    (World !st interp) |= Possible (d1 $<=^ d2) /\
+    (World !st interp) |= Possible (d1 $>=^ d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = d1 $!=^ d2 in (* We omit one-sided tests. For details, check the remark in mannwhitneyu.mlw *)
+    !st = !(old st) ++ Cons ("bws_test", h, Eq pv) Nil
+  }
+end

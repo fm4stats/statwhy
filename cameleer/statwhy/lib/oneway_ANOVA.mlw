@@ -1,0 +1,33 @@
+module Oneway_ANOVA
+  use cameleerBHL.CameleerBHL
+
+  (* oneway_ANOVA_hypothesis [p_1; p_2; ...; p_n] returns the alt. hypothesis mean p_1 $!= mean p_2 $|| mean p_1 $!= mean p_3 $|| ... $|| mean p_(n-1) $!= mean p_n. *)
+  function oneway_ANOVA_hypothesis (terms : list distribution) : formula =
+    let terms = map (fun t -> RealT (mean t)) terms in
+    match combinations terms "!=" with
+      | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
+      | Nil -> Atom (Pred "nil" Nil)
+    end
+  meta "rewrite_def" function oneway_ANOVA_hypothesis
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.f_oneway.html *)
+  val exec_oneway_ANOVA (ds : list distribution) (ys : list (dataset real)) : real
+  writes { st }
+  requires {
+    independent_list ys /\
+    length ds = length ys &&
+    length ds >= 2 /\ length ys >= 2 &&
+    for_all2 (fun d y -> ((World !st interp) |= is_normal d) && sampled y d) ds ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
+    (forall p q : distribution. mem p ds /\ mem q ds ->
+      (World !st interp) |= eq_variance p q) /\
+    (forall s t : distribution. mem s ds /\ mem t ds /\ not eq_distribution s t ->
+      ((World !st interp) |= Possible (mean s $< mean t) /\
+       (World !st interp) |= Possible (mean s $> mean t)))
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = oneway_ANOVA_hypothesis ds in
+    !st = !(old st) ++ Cons ("oneway_ANOVA", h, Eq pv) Nil
+  }
+end

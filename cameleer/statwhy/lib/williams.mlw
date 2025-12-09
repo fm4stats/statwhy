@@ -6,63 +6,62 @@ module Williams
 
   let function (+::) (xs : list 'a) (x : 'a) : list 'a = Cons x xs
 
-  let function div2 [@rewrite] (r : int) : int = div r 2
+  let function div2 (r : int) : int = div r 2
 
   function cmb_store (cmbs : list formula) (ps : array real) (i : int) : store
   = match cmbs with
     | Cons f fs -> Cons ("williams", f, Eq (ps[i])) (cmb_store fs ps (i + 1))
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_store
-
+  
   function tl (l : list 'a) : list 'a
   
   axiom tl_def [@rewrite]:
     forall l : list 'a, x : 'a.
       tl (Cons x l) = l
 
-  val exec_williams (ppls : list population) (control_ppl : population)
-                    (ys : dataset (list (list real))) (c : dataset (list real))
+  val exec_williams (dists : list distribution) (control_dist : distribution)
+                    (ys : list (dataset real)) (c : dataset real)
                     (alt : alternative) : array real
   writes { st }
   requires {
-    Length.length ppls = Length.length ys /\
-    for_all2 (fun p y -> match p with NormalD _ _ -> sampled y p | _ -> false end) ppls ys /\
-    (match control_ppl with NormalD _ _ -> sampled c control_ppl | _ -> false end) /\
-    for_all (fun p -> (World !st interp) |= eq_variance control_ppl p) ppls /\      
+    Length.length dists = Length.length ys /\
+    for_all2 (fun p y -> ((World !st interp) |= is_normal p) && sampled y p) dists ys /\
+    (((World !st interp) |= is_normal control_dist) && sampled c control_dist) /\
+    for_all (fun p -> (World !st interp) |= eq_variance control_dist p) dists /\      
     match alt with
     | Two -> false
     | Up ->
       for_all
         (fun p ->
-          (World !st interp) |= Possible (mean control_ppl $> mean p) /\
-          (World !st interp) |= Not (Possible (mean control_ppl $< mean p)))
-        ppls /\
+          (World !st interp) |= Possible (mean control_dist $> mean p) /\
+          (World !st interp) |= Not (Possible (mean control_dist $< mean p)))
+        dists /\
       for_all (fun t -> let (p1, p2) = t in
                 (World !st interp) |= Know (mean p1 $<= mean p2))
-              (combine (ppls ++ (Cons control_ppl Nil)) (tl (ppls ++ (Cons control_ppl Nil))))
+              (combine (dists ++ (Cons control_dist Nil)) (tl (dists ++ (Cons control_dist Nil))))
     | Low ->
       for_all
         (fun p ->
-          (World !st interp) |= Not (Possible (mean control_ppl $> mean p)) /\
-          (World !st interp) |= Possible (mean control_ppl $< mean p))
-        ppls /\
+          (World !st interp) |= Not (Possible (mean control_dist $> mean p)) /\
+          (World !st interp) |= Possible (mean control_dist $< mean p))
+        dists /\
       for_all (fun t -> let (p1, p2) = t in
                 (World !st interp) |= Know (mean p1 $>= mean p2))
-              (combine ppls (tl ppls))
+              (combine dists (tl dists))
     end
   } ensures {
     let ps = result in
-    length ps = Length.length ppls /\
+    length ps = Length.length dists /\
     let b = length ps in
     (forall i : int. 0 <= i < b -> pvalue (ps[i])) /\
     (forall i : int. 0 <= i < (b - 1) -> ps[i] <=. ps[i+1]) /\
     let cmbs = map (fun t -> match alt with
                              | Two -> Atom (Pred "nil" Nil)
-                             | Up -> mean control_ppl $> mean t
-                             | Low -> mean control_ppl $< mean t
+                             | Up -> mean control_dist $> mean t
+                             | Low -> mean control_dist $< mean t
                              end)
-                   ppls in
+                   dists in
     !st = (cmb_store cmbs ps 0) ++ !(old st)
   }
 end

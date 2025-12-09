@@ -1,13 +1,13 @@
 module Binom
   use cameleerBHL.CameleerBHL
 
-  val exec_binom_test (p : population) (k : 'a -> bool) (p0 : real) (y : dataset (list 'a)) (alt : alternative) : real
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.binomtest.html *)
+  val exec_binom_test (d : distribution) (k : 'a -> bool) (p0 : real) (y : dataset 'a) (alt : alternative) : real
   writes { st }
   requires {
-  match p with
-  | (BernoulliD _) ->
+  (World !st interp) |= is_bernoulli d /\ scale_leq Nominal y.scale /\
   let p0 = const_term p0 in
-  let p = bernoullip p in
+  let p = bernoullip d in
   match alt with
   | Two ->
     (World !st interp) |= Possible (p $< p0) /\
@@ -18,12 +18,10 @@ module Binom
   | Low ->
     (World !st interp) |= Possible (p $< p0) /\
     (World !st interp) |= Not (Possible (p $> p0)) end
-  | _ -> false
-  end
   } ensures {
     let pv = result in
     pvalue result /\
-    let p = bernoullip p in
+    let p = bernoullip d in
     let p0 = const_term p0 in
     let h = match alt with
       | Two -> p $!= p0

@@ -1886,12 +1886,12 @@ Fixpoint aux_poly {a:Type} {a_WT:WhyType a} (x:a)
   end.
 
 (* Why3 assumption *)
-Fixpoint combinations_poly {a:Type} {a_WT:WhyType a}
+Fixpoint cmb {a:Type} {a_WT:WhyType a}
   (lst:Init.Datatypes.list a) {struct lst}: Init.Datatypes.list (a* a)%type :=
   match lst with
   | Init.Datatypes.nil => Init.Datatypes.nil
   | Init.Datatypes.cons x tl =>
-      Init.Datatypes.app (aux_poly x tl) (combinations_poly tl)
+      Init.Datatypes.app (aux_poly x tl) (cmb tl)
   end.
 
 (* Why3 assumption *)

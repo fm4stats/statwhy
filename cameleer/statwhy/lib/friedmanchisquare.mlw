@@ -1,0 +1,33 @@
+module Friedmanchisquare
+  use cameleerBHL.CameleerBHL
+
+  (* friedmanchisquare_hypothesis [p_1; p_2; p_3; ...; p_n] returns p_1 $!=^ p_2 $|| p_1 $!=^ p_3 $|| ... $|| p_(n-1) $!=^ p_n. *)
+  let function friedmanchisquare_hypothesis (ds: list distribution): formula =
+    match combinations' ds ($!=^) with
+    | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
+    | Nil -> Atom (Pred "nil" Nil)
+    end
+  meta "rewrite_def" function friedmanchisquare_hypothesis
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.friedmanchisquare.html *)
+  val exec_friedmanchisquare (ds: list distribution) (ys: list (dataset 'a)): real
+  writes { st }
+  requires {
+    independent_list ys /\
+    for_all2 (fun y d -> sampled y d) ys ds /\
+    repeated_sample ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
+    length ds = length ys /\
+    length ds >= 6 /\
+    (forall x y. mem x ys -> mem y ys -> length x.data = length y.data) /\
+    (forall x. mem x ys -> length x.data > 10) /\
+    (forall s t: distribution.
+      mem s ds -> mem t ds -> not eq_distribution s t ->
+      (World !st interp) |= Possible (s $!=^ t))
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = friedmanchisquare_hypothesis ds in
+    !st = Cons ("friedmanchisquare", h, Eq pv) !(old st)
+  }
+end

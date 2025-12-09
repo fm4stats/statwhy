@@ -1,0 +1,34 @@
+module Quantile_test
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.quantile_test.html#scipy.stats.quantile_test *)
+  val exec_quantile_test (d : distribution) (q p : real) (y : dataset real) (alt : alternative) : real
+  writes { st }
+  requires {
+    sampled y d /\ scale_leq Interval y.scale /\
+    0.0 <. q <. 1.0 /\
+    let q = quantile d q in
+    let p = const_term p in
+    match alt with
+    | Two ->
+        (World !st interp) |= Possible (q $< p) /\
+        (World !st interp) |= Possible (q $> p)
+    | Up ->
+        (World !st interp) |= Not (Possible (q $< p)) /\
+        (World !st interp) |= Possible (q $> p)
+    | Low ->
+        (World !st interp) |= Possible (q $< p) /\
+        (World !st interp) |= Not (Possible (q $> p))
+    end
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let q = quantile d q in
+    let p = const_term p in
+    let h = match alt with
+      | Two -> q $!= p
+      | Up -> q $> p
+      | Low -> q $< p
+    end in !st = Cons ("quantile_test", h, Eq pv) !(old st)
+  }
+end

@@ -6,52 +6,54 @@ module Dunnett
 
   let function (+::) (xs : list 'a) (x : 'a) : list 'a = Cons x xs
 
-  let function div2 [@rewrite] (r : int) : int = div r 2
+  let function div2 (r : int) : int = div r 2
 
   function cmb_store (cmbs : list formula) (ps : array real) (i : int) : store
   = match cmbs with
     | Cons f fs -> Cons ("dunnett", f, Eq (ps[i])) (cmb_store fs ps (i + 1))
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_store
 
-  val exec_dunnett (ppls : list population) (control_ppl : population)
-                   (ys : dataset (list (list real))) (c : dataset (list real))
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.dunnett.html *)
+  val exec_dunnett (dists : list distribution) (control_dist : distribution)
+                   (ys : list (dataset real)) (c : dataset real)
                    (alt : alternative) : array real
   writes { st }
   requires {
-    Length.length ppls = Length.length ys /\
-    for_all2 (fun p y -> match p with NormalD _ _ -> sampled y p | _ -> false end) ppls ys /\
-    (match control_ppl with NormalD _ _ -> sampled c control_ppl | _ -> false end) /\
-    for_all (fun p -> (World !st interp) |= eq_variance control_ppl p) ppls /\
+    independent_list ys /\
+    Length.length dists = Length.length ys /\
+    for_all2 (fun p y -> ((World !st interp) |= is_normal p) && sampled y p) dists ys /\
+    ((World !st interp) |= is_normal control_dist && sampled c control_dist) /\
+    for_all (fun p -> (World !st interp) |= eq_variance control_dist p) dists /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\ scale_leq Interval c.scale /\
     match alt with
     | Two -> for_all
                (fun p ->
-                 (World !st interp) |= Possible (mean control_ppl $< mean p) /\
-                 (World !st interp) |= Possible (mean control_ppl $> mean p))
-               ppls
+                 (World !st interp) |= Possible (mean control_dist $< mean p) /\
+                 (World !st interp) |= Possible (mean control_dist $> mean p))
+               dists
     | Up -> for_all
               (fun p ->
-                (World !st interp) |= Possible (mean control_ppl $> mean p) /\
-                (World !st interp) |= Not (Possible (mean control_ppl $< mean p)))
-              ppls
+                (World !st interp) |= Possible (mean control_dist $> mean p) /\
+                (World !st interp) |= Not (Possible (mean control_dist $< mean p)))
+              dists
     | Low -> for_all
                (fun p ->
-                 (World !st interp) |= Not (Possible (mean control_ppl $> mean p)) /\
-                 (World !st interp) |= Possible (mean control_ppl $< mean p))
-             ppls
+                 (World !st interp) |= Not (Possible (mean control_dist $> mean p)) /\
+                 (World !st interp) |= Possible (mean control_dist $< mean p))
+             dists
     end
   } ensures {
     let ps = result in
-    length ps = Length.length ppls /\
+    length ps = Length.length dists /\
     let b = length ps in
     (forall i : int. 0 <= i < b -> pvalue (ps[i])) /\
     let cmbs = map (fun t -> match alt with
-                             | Two -> mean control_ppl $!= mean t
-                             | Up -> mean control_ppl $> mean t
-                             | Low -> mean control_ppl $< mean t
+                             | Two -> mean control_dist $!= mean t
+                             | Up -> mean control_dist $> mean t
+                             | Low -> mean control_dist $< mean t
                              end)
-                   ppls in
+                   dists in
     !st = (cmb_store cmbs ps 0) ++ !(old st)
   }
 end

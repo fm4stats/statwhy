@@ -1,0 +1,65 @@
+module Anderson
+  use cameleerBHL.CameleerBHL
+
+  type null_dist = Norm | Expon | Logistic
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson.html#scipy.stats.anderson *)
+  val exec_anderson (d: distribution) (y: dataset real) (nd: null_dist) : real
+  writes { st }
+  requires {
+    match d with
+    | (UnknownD _) -> 
+      sampled y d /\ scale_leq Interval y.scale /\
+      (World !st interp) |= is_continuous d /\
+      match nd with
+      | Norm -> 
+        (World !st interp) |= Possible (Not (is_normal d))
+      | Expon ->
+        (World !st interp) |= Possible (Not (is_exponential d))
+      | Logistic ->
+        (World !st interp) |= Possible (Not (is_logistic d))
+      end
+    | _ -> false
+    end
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = match nd with
+      | Norm -> (Not (is_normal d))
+      | Expon -> (Not (is_exponential d))
+      | Logistic -> (Not (is_logistic d))
+    end in
+    !st = Cons ("anderson", h, Leq pv) !(old st)
+  }
+end
+
+module Anderson_ksamp
+  use cameleerBHL.CameleerBHL
+
+  
+  function anderson_ksamp_hypothesis (ds: list distribution): formula =
+    match combinations' ds ($!=^) with
+    | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
+    | Nil -> Atom (Pred "nil" Nil)
+    end
+  meta "rewrite_def" function anderson_ksamp_hypothesis
+
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.anderson_ksamp.html#scipy.stats.anderson_ksamp *)
+  val exec_anderson_ksamp (ds: list distribution) (ys: list (dataset real)) : real
+  writes { st }
+  requires {
+    independent_list ys /\
+    length ds = length ys /\
+    length ds >= 2 /\ length ys >= 2 /\
+    for_all2 sampled ys ds /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
+    for_all (fun d -> (World !st interp) |= is_continuous d) ds /\
+    (World !st interp) |= Possible (anderson_ksamp_hypothesis ds)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = anderson_ksamp_hypothesis ds in
+    !st = Cons ("anderson_ksamp", h, Leq pv) !(old st)
+  }
+end

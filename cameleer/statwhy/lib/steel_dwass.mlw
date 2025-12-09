@@ -6,49 +6,47 @@ module Steel_Dwass
 
 
   use int.ComputerDivision
-  let function div2 [@rewrite] (r : int) : int = div r 2
+  let function div2 (r : int) : int = div r 2
 
   function cmb_aux (t : 'a) (l : list 'a) : list ('a, 'a)
   = match l with
     | Cons y ys -> Cons (t,y) (cmb_aux t ys)
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_aux
-
+  
   function cmb_term (l : list 'a) : list ('a, 'a)
     = match l with
     | Cons x xs -> (cmb_aux x xs) ++ (cmb_term xs)
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_term
-
+  
   function cmb_store (cmbs : list formula) (ps : array real) (i : int) : store
   = match cmbs with
     | Cons f fs -> Cons ("steel_dwass", f, Eq (ps[i])) (cmb_store fs ps (i + 1))
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_store
-
-  val exec_steel_dwass (ppls : list population) (ys : dataset (list (list real))) : array real
+  
+  val exec_steel_dwass (dists : list distribution) (ys : list (dataset real)) : array real
   writes { st }
   requires {
-    Length.length ppls = Length.length ys /\
-    for_all2 sampled ys ppls /\
+    Length.length dists = Length.length ys /\
+    for_all (fun y -> scale_leq Ordinal y.scale) ys /\
+    for_all2 sampled ys dists /\
     for_all
         (fun t -> let (x, y) = t in
           (World !st interp) |= eq_variance x y)
-        (combinations_poly ppls) /\
+        (cmb dists) /\
     for_all
       (fun t -> let (s, t) = t in
         ((World !st interp) |= Possible (mean s $< mean t) /\
          (World !st interp) |= Possible (mean s $> mean t)))
-      (cmb_term ppls)
+      (cmb_term dists)
   } ensures {
     let ps = result in
-    length ps = div2 ((Length.length ppls) * (Length.length ppls - 1)) /\
+    length ps = div2 ((Length.length dists) * (Length.length dists - 1)) /\
     let b = length ps in
     (forall i : int. 0 <= i < b -> pvalue (ps[i])) /\
-    let cmbs = combinations (map (fun p -> RealT (mean p)) ppls) "!=" in
+    let cmbs = combinations (map (fun p -> RealT (mean p)) dists) "!=" in
     !st = (cmb_store cmbs ps 0) ++ !(old st)
   }
 end

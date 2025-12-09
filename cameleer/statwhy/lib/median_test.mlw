@@ -1,0 +1,20 @@
+module Median_test
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.median_test.html *)
+  val exec_median_test (d1 d2: distribution) (y1 y2: dataset real): real
+  writes { st }
+  requires {
+    independent y1 y2 /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    scale_leq Ordinal y1.scale /\ scale_leq Ordinal y2.scale /\
+    (World !st interp) |= Possible (med d1 $<= med d2) /\
+    (World !st interp) |= Possible (med d1 $>= med d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    let h = med d1 $!= med d2 in
+    !st = Cons ("median_test", h, Eq pv) !(old st)
+  }
+  (* Note: the input is limited to two datasets. *)
+end

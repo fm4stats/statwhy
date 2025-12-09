@@ -3,21 +3,20 @@ module StorePV
   use real.Real
   use logicalFormula.SetAppReal
   use logicalFormula.Dataset
-  use export list.List
-  use export list.Mem
-  use export list.Length
-  use export logicalFormula.LanguageData
+  use list.List
+  use list.Mem
+  use list.Length
+  use logicalFormula.LanguageData
 
   type store_elm = (fsymb, formula, pvalue)
   type store = list store_elm
   
-  (** empty list *)
+  (* empty list *)
   predicate is_empty (st: store) = (st = Nil)
   meta "rewrite_def" predicate is_empty
 
   let function empty = Nil
-  meta "rewrite_def" function empty
-
+  
 end
 
 (* Programming language Prog  *)
@@ -52,23 +51,20 @@ module HypothesisTest
     | (Eq r1, Eq r2) | (Eq r1, Leq r2) | (Leq r1, Eq r2) | (Leq r1, Leq r2)
       -> Leq (r1 +. r2)
     end
-  meta "rewrite_def" function disjpvs
-
+  
   function conjpvs (pv1:pvalue) (pv2:pvalue) : pvalue =
     match (pv1, pv2) with
     | (Eq r1, Eq r2) | (Eq r1, Leq r2) | (Leq r1, Eq r2) | (Leq r1, Leq r2)
       -> Leq (if r1 <. r2 then r1 else r2)
     end
-  meta "rewrite_def" function conjpvs
-
+  
   function mem_fml_in_store (h: formula) (st: store) : bool
   =
     match st with
     | (Cons (_,h',_) st') -> (eq_hypothesis h h') || mem_fml_in_store h st'
     | Nil -> False
     end
-  meta "rewrite_def" function mem_fml_in_store
-
+  
   function consistent_fml_store (h: formula) (st: store) : bool
   = mem_fml_in_store h st ||
     match h with
@@ -76,8 +72,7 @@ module HypothesisTest
     | Conj h1 h2 -> (consistent_fml_store h1 st) && (consistent_fml_store h2 st)
     | _ -> False
     end
-  meta "rewrite_def" function consistent_fml_store
-
+  
   (* obtain a single p-value from a store *)
   function get_pv (h: formula) (st: store) : pvalue
   = match st with
@@ -86,7 +81,6 @@ module HypothesisTest
                               else get_pv h st'
     | Nil -> Eq 0.0
     end
-  meta "rewrite_def" function get_pv
   
 
   (* obtain a composite p-value from a store *)
@@ -101,8 +95,7 @@ module HypothesisTest
       -> Eq syntax_error
     | _ -> Eq 0.0
     end
-  meta "rewrite_def" function compose_pvs
-
+  
   
   lemma get_pv_recursive1:
     forall h1 : formula, st [@rewrite] : store, f : string, p : pvalue.

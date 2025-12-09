@@ -1,73 +1,33 @@
 module Ftest
   use cameleerBHL.CameleerBHL
 
-val exec_ftest (ppl1 : population) (ppl2 : population) (y : dataset (list real, list real)) (alt : alternative) : real
+  (* The specification is based on Test 16 of "100 statistical tests". *)
+  val exec_ftest (dist1 : distribution) (dist2 : distribution) (y1 y2 : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-      match y with
-      | (y1, y2) ->
-      match (ppl1, ppl2) with
-      | (NormalD _ _, NormalD _ _) ->
-          non_paired y1 y2 /\ sampled y1 ppl1 /\ sampled y2 ppl2 /\
-          ((World !st interp) |= Disj (Not (check_variance ppl1)) (Not (check_variance ppl2))) /\
-          match alt with
-          | Two ->
-              (World !st interp) |= Possible (var ppl1 $< var ppl2) /\
-              (World !st interp) |= Possible (var ppl1 $> var ppl2)
-          | Up ->
-              (World !st interp) |= Not (Possible (var ppl1 $< var ppl2)) /\
-              (World !st interp) |= Possible (var ppl1 $> var ppl2)
-          | Low ->
-              (World !st interp) |= Possible (var ppl1 $< var ppl2) /\
-              (World !st interp) |= Not (Possible (var ppl1 $> var ppl2))
-          end
-      | _ -> false
-      end
-      end
-    }
+    (World !st interp) |= is_normal dist1 /\
+    (World !st interp) |= is_normal dist2 /\
+    independent y1 y2 /\ sampled y1 dist1 /\ sampled y2 dist2 /\
+    ((World !st interp) |= Disj (Not (check_variance dist1)) (Not (check_variance dist2))) /\
+    match alt with
+    | Two ->
+        (World !st interp) |= Possible (var dist1 $< var dist2) /\
+        (World !st interp) |= Possible (var dist1 $> var dist2)
+    | Up ->
+        (World !st interp) |= Not (Possible (var dist1 $< var dist2)) /\
+        (World !st interp) |= Possible (var dist1 $> var dist2)
+    | Low ->
+        (World !st interp) |= Possible (var dist1 $< var dist2) /\
+        (World !st interp) |= Not (Possible (var dist1 $> var dist2))
+    end
+  }
     ensures {
       let pv = result in
       pvalue result /\
       let h = match alt with
-        | Two -> var ppl1 $!= var ppl2
-        | Up -> var ppl1 $> var ppl2
-        | Low -> var ppl1 $< var ppl2
+        | Two -> var dist1 $!= var dist2
+        | Up -> var dist1 $> var dist2
+        | Low -> var dist1 $< var dist2
       end in !st = !(old st) ++ Cons ("ftest", h, Eq pv) Nil
     }
 end
-
-(* module Ftest *)
-(*   use cameleerBHL.CameleerBHL *)
-
-(*   val exec_ftest (r1 : term) (r2 : term) (y : dataset (list real, list real)) (alt : alternative) : real *)
-(*   writes { st } *)
-(*   requires { *)
-(*       match y with *)
-(*       | (y1, y2) -> *)
-(*           is_normal (ppl y1) /\ is_normal (ppl y2) /\ *)
-(*           non_paired y1 y2 /\ *)
-(*           (exists r1':real_invisible. exists s:int. r1 = Real s r1') /\ *)
-(*           (exists r2':real_invisible. exists s:int. r2 = Real s r2') /\ *)
-(*           match alt with *)
-(*           | Two -> *)
-(*               (World !st interp) |= Possible (Atom (Pred "<" (Cons r1 (Cons r2 Nil)))) /\ *)
-(*               (World !st interp) |= Possible (Atom (Pred ">" (Cons r1 (Cons r2 Nil)))) *)
-(*           | Up -> *)
-(*               (World !st interp) |= Not (Possible (Atom (Pred "<" (Cons r1 (Cons r2 Nil))))) /\ *)
-(*               (World !st interp) |= Possible (Atom (Pred ">" (Cons r1 (Cons r2 Nil)))) *)
-(*           | Low -> *)
-(*               (World !st interp) |= Possible (Atom (Pred "<" (Cons r1 (Cons r2 Nil)))) /\ *)
-(*               (World !st interp) |= Not (Possible (Atom (Pred ">" (Cons r1 (Cons r2 Nil))))) *)
-(*           end *)
-(*       end *)
-(*     } *)
-(*     ensures { *)
-(*       let pv = result in *)
-(*       pvalue result /\ *)
-(*       let h = match alt with *)
-(*         | Two -> Pred "=!" (Cons r1 (Cons r2 Nil)) *)
-(*         | Up -> Pred ">" (Cons r1 (Cons r2 Nil)) *)
-(*         | Low -> Pred "<" (Cons r1 (Cons r2 Nil)) *)
-(*       end in !st = !(old st) ++ Cons ("ftest", (Atom h), Eq pv) Nil *)
-(*     } *)
-(* end *)

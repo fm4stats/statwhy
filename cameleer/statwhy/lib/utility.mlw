@@ -1,7 +1,6 @@
 module Utility
   use logicalFormula.LanguageData
   use list.List
-  use list.Mem
   use list.Append
   use int.Int
   use export hof.Hof
@@ -13,12 +12,12 @@ module Utility
     | Nil -> Nil
     | Cons y ys -> Cons (Atom (Pred pred (Cons x (Cons y Nil)))) (aux x ys pred)
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function aux
   
   lemma lem_aux_length:
     forall x, ys [@induction], pred. length (aux x ys pred) = length ys
 
+  (* "combinations [t_1; ...; t_n] pred" returns [pred t_1 t_2; pred t_1 t_3; ...; pred t_(n-1) t_n] *)
   let rec function combinations (lst : list term)  (pred : string) : list formula
     (* variant { lst } *)
   = match lst with
@@ -26,8 +25,28 @@ module Utility
     | Cons x tl -> let new_comb = aux x tl pred in
                    new_comb ++ combinations tl pred
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function combinations
+
+  let rec function aux' (x : 'a) (ys : list 'a) (pred : 'a -> 'a -> formula) : list formula
+    (* variant { ys } *)
+  = match ys with
+    | Nil -> Nil
+    | Cons y ys -> Cons (pred x y) (aux' x ys pred)
+    end
+  meta "rewrite_def" function aux'
+
+  lemma lem_aux'_length:
+    forall x: 'a, ys [@induction], pred. length (aux' x ys pred) = length ys
+
+  (* polymorphic version of combinations *)
+  let rec function combinations' (lst : list 'a) (pred : 'a -> 'a -> formula) : list formula
+    (* variant { lst } *)
+  = match lst with
+    | Nil -> Nil
+    | Cons x tl -> let new_comb = aux' x tl pred in
+                   new_comb ++ combinations' tl pred
+    end  
+  meta "rewrite_def" function combinations'
 
   use list.Length
   use int.ComputerDivision
@@ -37,13 +56,13 @@ module Utility
     forall lst, pred.
     length (combinations lst pred) = div ((length lst) * (length lst - 1) ) 2
 
+  (* "enumerate [x1; ...; xn] acc" returns [(acc,x1); (acc+1,x2); ...; (acc+n,xn)] *)
   let rec function enumerate (l : list 'a) (acc : int) : list (int, 'a)
     variant { l }
   = match l with
     | Nil -> Nil
     | Cons x r -> Cons (acc, x) (enumerate r (acc+1))
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function enumerate
 
   let rec function aux_poly (x : 'a) (ys : list 'a) : list ('a, 'a)
@@ -51,17 +70,15 @@ module Utility
     | Nil -> Nil
     | Cons y ys -> Cons (x, y) (aux_poly x ys)
     end
-  meta "compute_max_steps" 1_000_000
   meta "rewrite_def" function aux_poly
 
-  let rec function combinations_poly (lst : list 'a) : list ('a, 'a)
+  (* "cmb [x_1; x_2; ...; x_n]" returns [(x_1,x_2); (x_1,x_3); ...; (x_(n-1),x_n)] *)
+  let rec function cmb (lst : list 'a) : list ('a, 'a)
   = match lst with
     | Nil -> Nil
-    | Cons x tl -> let new_comb = aux_poly x tl in
-                   new_comb ++ combinations_poly tl
+    | Cons x tl -> let new_cmb = aux_poly x tl in
+                   new_cmb ++ cmb tl
     end
-  meta "compute_max_steps" 1_000_000
-  meta "rewrite_def" function combinations_poly
-  
+  meta "rewrite_def" function cmb
 end
 

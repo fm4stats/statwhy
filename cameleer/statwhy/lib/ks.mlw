@@ -6,30 +6,32 @@ ks_2samp: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ks_2s
 module Ks
   use cameleerBHL.CameleerBHL
 
-  val exec_ks_1samp (p_obs : population) (p_null : population) (y : dataset (list real)) : real
+  val exec_ks_1samp (d_obs d_null: distribution) (y : dataset real) : real
   writes { st }
   requires {
-    sampled y p_obs /\
-    is_known p_null /\
-    (World !st interp) |= Possible (p_obs $!=^ p_null)
+    sampled y d_obs /\ scale_leq Interval y.scale /\
+    is_known d_null /\
+    (World !st interp) |= is_continuous d_obs  /\
+    (World !st interp) |= is_continuous d_null /\
+    (World !st interp) |= Possible (d_obs $!=^ d_null)
   } ensures {
     let pv = result in
     pvalue result /\
-    !st = Cons ("ks_1samp", (p_obs $!=^ p_null), Eq pv) !(old st)
+    !st = Cons ("ks_1samp", (d_obs $!=^ d_null), Eq pv) !(old st)
   }
 
-  val exec_ks_2samp (p1 : population) (p2 : population) (y : dataset (list real, list real)) : real
+  val exec_ks_2samp (d1 d2: distribution) (y1 y2 : dataset real) : real
   writes { st }
   requires {
-    match y with
-    | (y1, y2) ->
-      sampled y1 p1 /\ sampled y2 p2 /\
-      non_paired y1 y2 /\
-      (World !st interp) |= Possible (p1 $!=^ p2)
-    end
+    sampled y1 d1 /\ sampled y2 d2 /\ independent y1 y2 /\
+    scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= is_continuous d1  /\
+    (World !st interp) |= is_continuous d2 /\
+    independent y1 y2 /\
+    (World !st interp) |= Possible (d1 $!=^ d2)
   } ensures {
     let pv = result in
     pvalue result /\
-    !st = Cons ("ks_2samp", (p1 $!=^ p2), Eq pv) !(old st)
+    !st = Cons ("ks_2samp", (d1 $!=^ d2), Eq pv) !(old st)
   }
 end

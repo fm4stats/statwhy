@@ -2,54 +2,52 @@ module Tukey_HSD
   use cameleerBHL.CameleerBHL
   use array.Array
 
-  let function (+::) (xs : list 'a) (x : 'a) : list 'a = Cons x xs
-
-
   use int.ComputerDivision
-  let function div2 [@rewrite] (r : int) : int = div r 2
+  let function div2 (r : int) : int = div r 2
 
   function cmb_aux (t : 'a) (l : list 'a) : list ('a, 'a)
   = match l with
     | Cons y ys -> Cons (t,y) (cmb_aux t ys)
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_aux
-
+  
   function cmb_term (l : list 'a) : list ('a, 'a)
     = match l with
     | Cons x xs -> (cmb_aux x xs) ++ (cmb_term xs)
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_term
-
+  
   function cmb_store (cmbs : list formula) (ps : array real) (i : int) : store
   = match cmbs with
     | Cons f fs -> Cons ("tukey_hsd", f, Eq (ps[i])) (cmb_store fs ps (i + 1))
     | Nil -> Nil
     end
-  meta "rewrite_def" function cmb_store
 
-  val exec_tukey_hsd (ppls : list population) (ys : dataset (list (list real))) : array real
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.tukey_hsd.html *)
+  val exec_tukey_hsd (dists : list distribution) (ys : list (dataset real)) : array real
   writes { st }
   requires {
-    Length.length ppls = Length.length ys /\
-    for_all2 (fun p y -> match p with | NormalD _ _ -> sampled y p | _ -> false end) ppls ys /\
+    independent_list ys /\
+    Length.length dists = Length.length ys /\
+    for_all (fun p -> (World !st interp) |= is_normal p) dists /\
+    for_all2 (fun p y -> sampled y p) dists ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
     for_all
       (fun t -> let (x, y) = t in
         (World !st interp) |= eq_variance x y)
-      (combinations_poly ppls) /\  
+      (cmb dists) /\  
     for_all
       (fun t -> let (s, t) = t in
         ((World !st interp) |= Possible (mean s $< mean t) /\
          (World !st interp) |= Possible (mean s $> mean t)))
-      (cmb_term ppls)
+      (cmb_term dists)
   }
   ensures {
     let ps = result in
-    length ps = div2 ((Length.length ppls) * (Length.length ppls - 1)) /\
+    length ps = div2 ((Length.length dists) * (Length.length dists - 1)) /\
     let b = length ps in
     (forall i : int. 0 <= i < b -> pvalue (ps[i])) /\
-    let cmbs = combinations (map (fun p -> RealT (mean p)) ppls) "!=" in
+    let cmbs = combinations (map (fun p -> RealT (mean p)) dists) "!=" in
     !st = (cmb_store cmbs ps 0) ++ !(old st)
   }
 end

@@ -1,0 +1,35 @@
+module Levene
+  use cameleerBHL.CameleerBHL
+
+  (* levene_hypothesis [p_1; p_2; p_3; ...; p_n] returns var p_1 $!= var p_2 $|| var p_1 $!= var p_3 $|| ... $|| var p_(n-1) $!= var p_n. *)
+  function levene_hypothesis (dists : list distribution) : formula =
+  let terms = map (fun t -> RealT (var t)) dists in
+  let res = combinations terms "!=" in
+    match res with
+    | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
+    | Nil -> Atom (Pred "nil" Nil)
+    end
+  meta "rewrite_def" function levene_hypothesis
+
+  (* Exec Levene test *)
+  (* Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.levene.html *)
+  (* This test is non-parametric *)
+  val exec_levene (dists : list distribution) (ys : list (dataset real)) : real
+  writes { st }
+  requires {
+    independent_list ys /\
+    length dists = length ys /\
+    length dists >= 2 /\ length ys >= 2 /\
+    for_all2 (fun p y -> sampled y p) dists ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
+    for_all (fun x -> let (s, t) = x in
+      ((World !st interp) |= Possible (var s $< var t) /\
+       (World !st interp) |= Possible (var s $> var t)))
+      (cmb dists)
+  } ensures {
+    let pv = result in
+    pvalue pv /\
+    let h = levene_hypothesis dists in
+    !st = !(old st) ++ Cons ("levene", h, Eq pv) Nil
+  }
+end

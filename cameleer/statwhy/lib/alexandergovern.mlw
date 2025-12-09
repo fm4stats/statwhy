@@ -1,27 +1,33 @@
 module AlexanderGovern
   use cameleerBHL.CameleerBHL
 
-  function alexandergovern_hypothesis (ppls : list population) : formula =
-    let terms = map (fun t -> RealT (mean t)) ppls in
+  (* alexandergovern_hypothesis [p_1; p_2; p_3; ...; p_n] returns the alt. hypothesis mean p_1 $!= mean p_2 $|| mean p_1 $!= mean p_3 $|| ... $|| mean p_(n-1) $!= mean p_n. *)
+  function alexandergovern_hypothesis (dists : list distribution) : formula =
+    let terms = map (fun t -> RealT (mean t)) dists in
     match combinations terms "!=" with
       | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
       | Nil -> Atom (Pred "nil" Nil)
     end
+  meta "rewrite_def" function alexandergovern_hypothesis
 
-  val exec_alexandergovern (ps : list population) (ys : dataset (list (list real))) : real
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.alexandergovern.html *)
+  val exec_alexandergovern (dists : list distribution) (ys : list (dataset real)) : real
   writes { st }
   requires {
-    length ps = length ys &&
-    length ps >= 2 /\ length ys >= 2 &&
-    for_all2 (fun p y -> match p with NormalD _ _ -> sampled y p | _ -> false end) ps ys /\
+    independent_list ys /\
+    length dists = length ys /\
+    length dists >= 2 /\
+    for_all (fun p -> ((World !st interp) |= is_normal p)) dists /\
+    for_all2 (fun p y -> sampled y p) dists ys /\
+    for_all (fun y -> scale_leq Interval y.scale) ys /\
     for_all (fun x -> let (s, t) = x in
       ((World !st interp) |= Possible (mean s $< mean t) /\
        (World !st interp) |= Possible (mean s $> mean t)))
-      (combinations_poly ps)
+      (cmb dists)
   } ensures {
     let pv = result in
     pvalue result /\
-    let h = alexandergovern_hypothesis ps in
+    let h = alexandergovern_hypothesis dists in
     !st = !(old st) ++ Cons ("alexandergovern", h, Eq pv) Nil
   }
 end

@@ -3,8 +3,7 @@ module CameleerReal
   use export real.FromInt
 
   let function min r1 r2 = if r1 <. r2 then r1 else r2
-  meta "rewrite_def" function min
-
+  
   let function max r1 r2 = if r1 <. r2 then r2 else r1
 
   lemma Min_r : forall x y:real. y <. x -> min x y = y

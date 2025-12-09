@@ -10,12 +10,8 @@ module Chisquare
     | Nil -> 0
     | Cons x xs -> x + sum xs
     end
-  meta "rewrite_def" function sum
-    
-  (* lemma Combine_length: *)
-  (*   forall l: list 'a, m : list 'b. *)
-  (*   length (combine l m) = min (length l) (length m) *)
-    
+
+
   function chisquare_hypothesis (ps : list real_number) (exp : list real_number) : formula
   = match combine ps exp with
     | Cons (p1,p2) tl ->
@@ -24,24 +20,27 @@ module Chisquare
     | Nil -> Atom (Pred "nil" Nil)
     end
   meta "rewrite_def" function chisquare_hypothesis
-    
-  val exec_chisquare_test (ppl_obs : population) (ps_th : list real) (y_obs : dataset (list int)) : real
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chisquare.html#scipy.stats.chisquare *)
+  val exec_chisquare_test (dist_obs : distribution) (ps_th : list real) (y_obs : dataset int): real
   writes { st }
   requires {
-    match ppl_obs with
+    match dist_obs with
     | CategoricalD ps_obs ->
       is_prob_dist ps_obs (World !st interp) /\ is_prob_dist_const ps_th /\
-      length ps_obs = length ps_th = length y_obs /\
-      let size = from_int (sum y_obs) in
+      length ps_obs = length ps_th = length y_obs.data /\
+      sampled y_obs dist_obs /\ y_obs.scale = Unspecified /\
+      let size = from_int (sum y_obs.data) in
       for_all (fun p_i -> p_i *. size >=. 5.0) ps_th /\
-      for_all2 (fun x y -> 
+      for_all (fun x -> x >= 5) y_obs.data /\
+      for_all2 (fun x y ->
         ((World !st interp) |= Possible ((Real x) $< (Real (Const y))) /\
         (World !st interp) |= Possible ((Real x) $> (Real (Const y)))))
         ps_obs ps_th
     | _ -> false
     end
   } ensures {
-    match (ppl_obs) with
+    match dist_obs with
     | CategoricalD ps_obs ->
       let pv = result in
       pvalue result /\

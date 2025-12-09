@@ -1,27 +1,32 @@
 module Kruskal
   use cameleerBHL.CameleerBHL
 
-  function kruskal_hypothesis (terms : list population) : formula =
+  (* kruskal_hypothesis [p_1; p_2; ...; p_n] returns the alt. hypothesis med p_1 $!= med p_2 $|| med p_1 $!= med p_3 $|| ... $|| med p_(n-1) $!= med p_n. *)
+  function kruskal_hypothesis (terms : list distribution) : formula =
     let terms = map (fun t -> RealT (med t)) terms in
     match combinations terms "!=" with
     | Cons hd tl -> fold (fun acc t -> acc $|| t) hd tl
     | Nil -> Atom (Pred "nil" Nil)
     end
+  meta "rewrite_def" function kruskal_hypothesis
 
-  val exec_kruskal (ps : list population) (ys : dataset (list (list real))) : real
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.kruskal.html *)
+  val exec_kruskal (ds : list distribution) (ys : list (dataset real)) : real
   writes { st }
   requires {
-    length ps = length ys /\
-    length ps >= 2 /\ length ys >= 2 /\
-    for_all2 (fun p y -> sampled y p) ps ys /\
+    independent_list ys /\
+    length ds = length ys /\
+    length ds >= 2 /\ length ys >= 2 /\
+    for_all2 (fun p y -> sampled y p) ds ys /\
+    for_all (fun y -> scale_leq Ordinal y.scale) ys /\
     for_all (fun x -> let (s, t) = x in
       ((World !st interp) |= Possible (med s $< med t) /\
        (World !st interp) |= Possible (med s $> med t)))
-      (combinations_poly ps)
+      (cmb ds)
   } ensures {
     let pv = result in
     pvalue result /\
-    let h = kruskal_hypothesis ps in
+    let h = kruskal_hypothesis ds in
     !st = !(old st) ++ Cons ("kruskal", h, Eq pv) Nil
   }
 end

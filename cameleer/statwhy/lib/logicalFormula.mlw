@@ -9,8 +9,39 @@ module SetAppReal
     ensures { result = subset s1 s2 && subset s2 s1 }
 end
 
+(* Scale and dataset *)
 module Dataset
-  type dataset 'a = 'a
+  use list.List
+
+  type scale =
+    | Nominal
+    | Ordinal
+    | Interval
+    | Rational
+    | Unspecified
+    (* E.g., when the dataset represents a histogram or a contingency table, then we set its scale as Unspecified. *)
+
+  (* ordering *)
+  inductive scale_leq scale scale =
+  | Scale_leq_nominal_ordinal: scale_leq Nominal Ordinal
+  | Scale_leq_ordinal_interval: scale_leq Ordinal Interval
+  | Scale_leq_interval_rational: scale_leq Interval Rational
+  | Scale_leq_refl: forall s. scale_leq s s
+  | Scale_leq_trans: forall s t u. scale_leq s t -> scale_leq t u -> scale_leq s u
+
+  lemma scale_leq_reflexive:
+    forall s. scale_leq s s
+
+  lemma scale_leq_antisymmetric:
+    forall s t. scale_leq s t -> scale_leq t s -> s = t
+
+  lemma scale_leq_transitive:
+    forall s t u. scale_leq s t -> scale_leq t u -> scale_leq s u
+
+  type dataset 'a = {
+    data: list 'a;
+    scale: scale
+  }
 end
 
 (* Data language *)
@@ -39,62 +70,48 @@ module LanguageData
 
   type real_number = Param parameter | Const real
 
-  type population =
-    | NormalD real_number real_number
-    | BernoulliD real_number
-    | CategoricalD (list real_number)
+  type distribution =
+    (* continuous *)
+    | NormalD real_number real_number                 (* NormalD mu var *)
+    | ExponentialD real_number real_number            (* ExponentialD loc scale *)
+    | LogisticD real_number real_number               (* LogisticD loc scale *)
+    | ContUniformD real_number real_number                (* ContUniformD loc scale *)
+    | GammaD real_number real_number real_number      (* GammaD a loc scale *)
+    (* | GumbelLD real_number real_number                (\* The left-skewed Gumbel distribution: GumbelLD loc scale *\) *)
+    (* | GumbelRD real_number real_number                (\* The left-skewed Gumbel distribution: GumbelLD loc scale *\) *)
+    (* | WeibullMinD real_number real_number real_number (\* WeibullMinD c loc scale *\) *)
+    (* discrete *)
+    | CategoricalD (list real_number)                 (* CategoricalD p_s *)
+    | PoissonD real_number real_number real_number    (* PoissonD mu loc scale *)
+    (* unknown *)
     | UnknownD string
 
-  let rec function is_const_list (ss : list real_number) : bool
-  = match ss with
-    | Nil        -> true
-    | Cons s ss' -> match s with
-                    | Const _ -> is_const_list ss'
-                    | _       -> false
-                    end
-    end
-  meta "rewrite_def" function is_const_list
-
-  predicate is_known (ppl : population)
-  = match ppl with
-    | NormalD s1 s2 ->
-      match (s1, s2) with
-      | (Const _, Const _) -> true
-      | _ -> false
-      end
-    | BernoulliD s1 ->
-      match s1 with
-      | Const _ -> true
-      | _ -> false
-      end
-    | CategoricalD ss -> is_const_list ss
-    | _ -> false
-    end
-  meta "rewrite_def" predicate is_known
-
-  val function ppl : dataset 'a -> population
+  val function dist : dataset 'a -> distribution
 
   type real_term = Real real_number
 
-  type term = RealT real_term | PopulationT population
+  type term = RealT real_term | DistributionT distribution
 
-  val function mean (ppl : population) : real_term
+  val function mean distribution : real_term
 
-  val function var (ppl : population) : real_term
+  val function var distribution : real_term
 
-  val function med (ppl : population) : real_term
+  val function med distribution : real_term
+
+  val function quantile distribution real : real_term
+
+  val function skew distribution : real_term
+
+  val function kurtosis distribution : real_term
 
   let function const_term (r : real) : real_term
   = (Real (Const r))
-  meta "rewrite_def" function const_term
-
+  
   let function param_term (r : real_number) : real_term
   = (Real r)
-  meta "rewrite_def" function param_term
-
+  
   predicate eq_param (s t : parameter) = OCaml.(s = t)
-  meta "rewrite_def" predicate eq_param
-
+  
   scope Eq_param
   clone export relations.Equivalence with type t = parameter, predicate rel = eq_param
   end
@@ -105,8 +122,7 @@ module LanguageData
     | (Const s, Const t) -> Real.(s = t)
     | _ -> false
     end
-  meta "rewrite_def" predicate eq_real_number
-
+  
   scope Eq_real_number
   clone export relations.Equivalence with type t = real_number, predicate rel = eq_real_number
   end
@@ -117,24 +133,29 @@ module LanguageData
     | (Nil, Nil) -> true
     | _ -> false
     end
-  meta "rewrite_def" predicate eq_real_number_list
-
+  
   scope Eq_real_number_list
   clone export relations.Equivalence with type t = (list real_number), predicate rel = eq_real_number_list
   end
 
-  predicate eq_population (p1 p2 : population) =
+  predicate eq_distribution (p1 p2 : distribution) =
     match (p1, p2) with
     | (NormalD s1 s2, NormalD t1 t2) -> eq_real_number s1 t1 && eq_real_number s2 t2
-    | (BernoulliD s, BernoulliD t) -> eq_real_number s t
-    | (UnknownD i, UnknownD j) -> OCaml.(i = j)
+    | (ExponentialD l1 s1, ExponentialD l2 s2) -> eq_real_number l1 l2 && eq_real_number s1 s2
+    | (LogisticD l1 s1, LogisticD l2 s2) -> eq_real_number l1 l2 && eq_real_number s1 s2
+    (* | (GumbelLD l1 s1, GumbelLD l2 s2) -> eq_real_number l1 l2 && eq_real_number s1 s2 *)
+    (* | (GumbelRD l1 s1, GumbelRD l2 s2) -> eq_real_number l1 l2 && eq_real_number s1 s2 *)
+    (* | (WeibullMinD c1 l1 s1, WeibullMinD c2 l2 s2) -> eq_real_number c1 c2 && eq_real_number l1 l2 && eq_real_number s1 s2 *)
+    | (ContUniformD l1 s1, ContUniformD l2 s2) -> eq_real_number l1 l2 && eq_real_number s1 s2
+    | (GammaD a1 l1 s1, GammaD a2 l2 s2) -> eq_real_number a1 a2 && eq_real_number l1 l2 && eq_real_number s1 s2
     | (CategoricalD pp, CategoricalD qq) -> eq_real_number_list pp qq
+    | (PoissonD m1 l1 s1, PoissonD m2 l2 s2) -> eq_real_number m1 m2 && eq_real_number l1 l2 && eq_real_number s1 s2
+    | (UnknownD i, UnknownD j) -> OCaml.(i = j)
     | _ -> false
     end
-  meta "rewrite_def" predicate eq_population
-
-  scope Eq_population
-  clone export relations.Equivalence with type t = population, predicate rel = eq_population
+  
+  scope Eq_distribution
+  clone export relations.Equivalence with type t = distribution, predicate rel = eq_distribution
   end
 
   (* equality on real_terms is defined on a case-by-case basis *)
@@ -161,26 +182,37 @@ module LanguageData
       eq_real_term (Real r1) (Real r2) <-> eq_real_number r1 r2
 
   axiom eq_real_term_mean [@rewrite]:
-    forall p1 p2 : population.
-      eq_real_term (mean p1) (mean p2) <-> eq_population p1 p2
+    forall p1 p2 : distribution.
+      eq_real_term (mean p1) (mean p2) <-> eq_distribution p1 p2
 
   axiom eq_real_term_var [@rewrite]:
-    forall p1 p2 : population.
-      eq_real_term (var p1) (var p2) <-> eq_population p1 p2
+    forall p1 p2 : distribution.
+      eq_real_term (var p1) (var p2) <-> eq_distribution p1 p2
 
   axiom eq_real_term_med [@rewrite]:
-    forall p1 p2 : population.
-      eq_real_term (med p1) (med p2) <-> eq_population p1 p2
+    forall p1 p2 : distribution.
+      eq_real_term (med p1) (med p2) <-> eq_distribution p1 p2
+
+  axiom eq_real_term_quantile [@rewrite]:
+    forall p1 p2 : distribution, p q : real.
+      eq_real_term (quantile p1 p) (quantile p2 q) <-> eq_distribution p1 p2 /\ p = q
+
+  axiom eq_real_term_skew [@rewrite]:
+    forall p1 p2 : distribution.
+      eq_real_term (skew p1) (skew p2) <-> eq_distribution p1 p2
+
+  axiom eq_real_term_kurtosis [@rewrite]:
+    forall p1 p2 : distribution.
+      eq_real_term (kurtosis p1) (kurtosis p2) <-> eq_distribution p1 p2
 
   predicate eq_term (t1 t2 : term)
   =
     match (t1, t2) with
     | (RealT t1, RealT t2) -> eq_real_term t1 t2
-    | (PopulationT p1, PopulationT p2) ->  eq_population p1 p2
+    | (DistributionT p1, DistributionT p2) ->  eq_distribution p1 p2
     | _ -> false
     end
-  meta "rewrite_def" predicate eq_term
-
+  
   scope Eq_term
   clone export relations.Equivalence with type t = term, predicate rel = eq_term
   end
@@ -191,8 +223,7 @@ module LanguageData
     | (Cons _ _, Nil) | (Nil, Cons _ _) -> false
     | (Nil, Nil) -> true
     end
-  meta "rewrite_def" predicate eq_term_list
-
+  
   scope Eq_term_list
   clone export relations.Equivalence with type t = (list term), predicate rel = eq_term_list
   end
@@ -205,9 +236,9 @@ module LanguageData
 	       | StatTau pvalue formula | StatB pvalue formula
 
   let function ( $|| ) (h1 h2 : formula) : formula = Disj h1 h2
-  meta "rewrite_def" function ( $|| )
+  
   let function ( $&& ) (h1 h2 : formula) : formula = Conj h1 h2
-  meta "rewrite_def" function ( $&& )
+  
 
   predicate eq_atom (a1: atomic_formula) (a2: atomic_formula)
   =
@@ -215,8 +246,7 @@ module LanguageData
     | (Pred p1 tl1, Pred p2 tl2) ->
         OCaml.(p1 = p2) && eq_term_list tl1 tl2
     end
-  meta "rewrite_def" predicate eq_atom
-
+  
   scope Eq_atom
   clone export relations.Equivalence with type t = atomic_formula, predicate rel = eq_atom
   end

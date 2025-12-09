@@ -1,0 +1,33 @@
+module Cramervonmises
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on scipy.stats.cramervonmises (see https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises.html) *)
+  val exec_cramervonmises (d_obs d_null: distribution) (y : dataset real) : real
+  writes { st }
+  requires {
+    sampled y d_obs /\ scale_leq Interval y.scale /\
+    is_known d_null /\
+    (World !st interp) |= Possible (d_obs $!=^ d_null)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("cramervonmises", (d_obs $!=^ d_null), Eq pv) !(old st)
+  }
+
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.cramervonmises_2samp.html *)
+  val exec_cramervonmises_2samp (d1 d2: distribution) (y1 y2 : dataset real) : real
+  writes { st }
+  requires {
+    sampled y1 d1 /\ sampled y2 d2 /\ independent y1 y2 /\
+    scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= is_continuous d1 /\
+    (World !st interp) |= is_continuous d2 /\
+    (World !st interp) |= Possible (d1 $!=^ d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("cramervonmises_2samp", (d1 $!=^ d2), Eq pv) !(old st)
+  }
+end
+ 

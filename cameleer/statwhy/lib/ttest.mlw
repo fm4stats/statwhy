@@ -1,15 +1,14 @@
 module Ttest
   use cameleerBHL.CameleerBHL
 
-  (* t-test for a population mean (variance unknown) *)
-  val exec_ttest_1samp (p : population) (mu : real) (y : dataset (list real)) (alt : alternative) : real
+  (* t-test for a distribution mean (variance unknown) *)
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_1samp.html#scipy.stats.ttest_1samp *)
+  val exec_ttest_1samp (d : distribution) (mu : real) (y : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-    match p with
-    | (NormalD _ _) ->
-    sampled y p /\
-    (World !st interp) |= Not (check_variance p) /\
-    let r = mean p in
+    (World !st interp) |= is_normal d /\ sampled y d /\ scale_leq Interval y.scale /\
+    (World !st interp) |= Not (check_variance d) /\
+    let r = mean d in
     let m = const_term mu in
     match alt with
     | Two ->
@@ -22,14 +21,12 @@ module Ttest
         (World !st interp) |= Possible (r $< m) /\
         (World !st interp) |= Not (Possible (r $> m))
     end
-    | _ -> false
-    end
   }
   ensures {
     let pv = result in
     pvalue result /\
     let m = const_term mu in
-    let r = mean p in
+    let r = mean d in
     let h = match alt with
       | Two -> r $!= m
       | Up -> r $> m
@@ -37,41 +34,36 @@ module Ttest
     end in !st = Cons ("ttest_1samp", h, Eq pv) !(old st)
   }
 
-  (* t-test for two population means (variances unknown but equal) *)
-  val exec_ttest_ind_eq (p1 : population) (p2 : population) (y : dataset (list real, list real)) (alt : alternative) : real
+  (* t-test for two distribution means (variances unknown but equal) *)
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html *)
+  val exec_ttest_ind_eq (d1 d2: distribution) (y1 y2 : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-    match (p1, p2) with
-    | ((NormalD _ _), (NormalD _ _)) ->
-    match y with
-    | (y1, y2) ->
-        non_paired y1 y2 /\
-        (World !st interp) |= eq_variance p1 p2 /\ 
-        (World !st interp) |= Not (check_variance p1) /\
-        (World !st interp) |= Not (check_variance p2) /\
-        sampled y1 p1 /\ sampled y2 p2 /\
-        let r1 = mean p1 in
-        let r2 = mean p2 in
-        match alt with
-        | Two ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Up ->
-          (World !st interp) |= Not (Possible (r1 $< r2)) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Low ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Not (Possible (r1 $> r2))
-        end
-    end
-    | _ -> false
+    independent y1 y2 /\ scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= is_normal d1 /\ (World !st interp) |= is_normal d2 /\
+    (World !st interp) |= eq_variance d1 d2 /\
+    (World !st interp) |= Not (check_variance d1) /\
+    (World !st interp) |= Not (check_variance d2) /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    let r1 = mean d1 in
+    let r2 = mean d2 in
+    match alt with
+    | Two ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Up ->
+      (World !st interp) |= Not (Possible (r1 $< r2)) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Low ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Not (Possible (r1 $> r2))
     end
   }
   ensures {
     let pv = result in
     pvalue pv /\
-    let r1 = mean p1 in
-    let r2 = mean p2 in
+    let r1 = mean d1 in
+    let r2 = mean d2 in
     let h = match alt with
       | Two -> r1 $!= r2
       | Up -> r1 $> r2
@@ -79,41 +71,36 @@ module Ttest
     end in !st = Cons ("ttest_ind_eq", h, Eq pv) !(old st)
   }
 
-  (* t-test for two population means (variances unknown) *)
-  val exec_ttest_ind_neq (p1 : population) (p2 : population) (y : dataset (list real, list real)) (alt : alternative) : real
+  (* t-test for two distribution means (variances unknown) *)
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_ind.html *)
+  val exec_ttest_ind_neq (d1 d2: distribution) (y1 y2 : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-    match (p1, p2) with
-    | ((NormalD _ _), (NormalD _ _)) ->
-    match y with
-    | (y1, y2) ->
-        non_paired y1 y2 /\
-        (World !st interp) |= Not (check_variance p1) /\
-        (World !st interp) |= Not (check_variance p2) /\
-        (World !st interp) |= Not (eq_variance p1 p2) /\
-        sampled y1 p1 /\ sampled y2 p2 /\
-        let r1 = mean p1 in
-        let r2 = mean p2 in
-        match alt with
-        | Two ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Up ->
-          (World !st interp) |= Not (Possible (r1 $< r2)) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Low ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Not (Possible (r1 $> r2))
-        end
-    end
-    | _ -> false
+    independent y1 y2 /\ scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= is_normal d1 /\ (World !st interp) |= is_normal d2 /\
+    (World !st interp) |= Not (check_variance d1) /\
+    (World !st interp) |= Not (check_variance d2) /\
+    (World !st interp) |= Not (eq_variance d1 d2) /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    let r1 = mean d1 in
+    let r2 = mean d2 in
+    match alt with
+    | Two ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Up ->
+      (World !st interp) |= Not (Possible (r1 $< r2)) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Low ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Not (Possible (r1 $> r2))
     end
   }
   ensures {
     let pv = result in
     pvalue pv /\
-    let r1 = mean p1 in
-    let r2 = mean p2 in
+    let r1 = mean d1 in
+    let r2 = mean d2 in
     let h = match alt with
       | Two -> r1 $!= r2
       | Up -> r1 $> r2
@@ -121,43 +108,37 @@ module Ttest
     end in !st = Cons ("ttest_ind_neq", h, Eq pv) !(old st)
   }
 
-  (* t-test for two population means (method of paired comparisons) *)
-  val exec_ttest_paired (p1 : population) (p2 : population) (y : dataset (list real, list real)) (alt : alternative) : real
+  (* t-test for two distribution means (method of paired comparisons) *)
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.ttest_rel.html *)
+  val exec_ttest_paired (d1 d2: distribution) (y1 y2 : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-    match (p1, p2) with
-    | ((NormalD _ _), (NormalD _ _)) ->
-    match y with
-    | (y1, y2) ->    
-        paired y1 y2 /\
-        sampled y1 p1 /\ sampled y2 p2 /\
-        let r1 = mean p1 in
-        let r2 = mean p2 in
-        match alt with
-        | Two ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Up ->
-          (World !st interp) |= Not (Possible (r1 $< r2)) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Low ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Not (Possible (r1 $> r2))
-        end
-    end
-    | _ -> false
+    paired y1 y2 /\ scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= is_normal d1 /\ (World !st interp) |= is_normal d2 /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    let r1 = mean d1 in
+    let r2 = mean d2 in
+    match alt with
+    | Two ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Up ->
+      (World !st interp) |= Not (Possible (r1 $< r2)) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Low ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Not (Possible (r1 $> r2))
     end
   }
   ensures {
     let pv = result in
     pvalue pv /\
-    let r1 = mean p1 in
-    let r2 = mean p2 in
+    let r1 = mean d1 in
+    let r2 = mean d2 in
     let h = match alt with
       | Two -> r1 $!= r2
       | Up -> r1 $> r2
       | Low -> r1 $< r2
     end in !st = Cons ("ttest_paired", h, Eq pv) !(old st)
   }
-
 end

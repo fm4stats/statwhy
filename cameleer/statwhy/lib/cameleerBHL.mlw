@@ -10,9 +10,13 @@ module CameleerBHL
   use export statBHL.HypothesisTest
   use export statELHT.LanguageELTH
   use export atomicFormulas.Real
-  use export atomicFormulas.Ppl
+  use export atomicFormulas.Dist
   use export atomicFormulas.Paired 
   use export utility.Utility
+
+  meta "compute_max_steps" 1000000
+  meta "rewrite_def" predicate mem
+  meta "rewrite_def" function (++)
 
   let predicate pvalue (r:real) = 0.0 <=. r <=. 1.0
 

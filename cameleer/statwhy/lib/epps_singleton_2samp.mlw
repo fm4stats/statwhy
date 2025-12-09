@@ -1,0 +1,17 @@
+module Epps_singleton_2samp
+  use cameleerBHL.CameleerBHL
+
+  (* The specification is based on https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.epps_singleton_2samp.html *)
+  val exec_epps_singleton_2samp (d1 d2: distribution) (y1 y2 : dataset real) : real
+  writes { st }
+  requires {
+    sampled y1 d1 /\ sampled y2 d2 /\ independent y1 y2 /\
+    length y1.data >= 25 /\ length y2.data >= 25 /\
+    scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    (World !st interp) |= Possible (d1 $!=^ d2)
+  } ensures {
+    let pv = result in
+    pvalue result /\
+    !st = Cons ("epps_singleton_2samp", (d1 $!=^ d2), Eq pv) !(old st)
+  }
+end

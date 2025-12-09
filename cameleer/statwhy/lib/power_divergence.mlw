@@ -1,0 +1,61 @@
+(*
+The specification is based on scipy.stats.power_divergence: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.power_divergence.html
+*)
+module Power_Divergence
+  use cameleerBHL.CameleerBHL
+  use real.FromInt
+  use int.MinMax
+  use list.Combine
+  use option.Option
+
+  function sum (l : list int) : int
+  = match l with
+    | Nil -> 0
+    | Cons x xs -> x + sum xs
+    end
+  
+  function power_divergence_hypothesis (ps : list real_number) (exp : list real_number) : formula
+  = match combine ps exp with
+    | Cons (p1,p2) tl ->
+      fold (fun fml x -> let (p1,p2) = x in fml $|| ((Real p1) $!= (Real p2)))
+        ((Real p1) $!= (Real p2)) tl
+    | Nil -> Atom (Pred "nil" Nil)
+    end
+  meta "rewrite_def" function power_divergence_hypothesis
+
+  
+  val exec_power_divergence (dist_obs : distribution) (ps_th : list real) (y_obs : dataset int) (lambda : option real) : real
+  writes { st }
+  requires {
+  let lambda = match lambda with
+             | Some p -> p
+             | None   -> 1.0 end in
+  match dist_obs with
+  | CategoricalD ps_obs ->
+    is_prob_dist ps_obs (World !st interp) /\ is_prob_dist_const ps_th /\
+    length ps_obs = length ps_th = length y_obs.data /\
+    sampled y_obs dist_obs /\ y_obs.scale = Unspecified /\
+    (if lambda <. 0.0
+    then for_all (fun x -> x <> 0) y_obs.data
+    else for_all (fun p -> p <> 0.0) ps_th) /\
+    let size = from_int (sum y_obs.data) in
+    for_all (fun p_i -> p_i *. size >=. 5.0) ps_th /\
+    for_all (fun x -> x >= 5) y_obs.data /\
+    for_all2
+      (fun x y -> 
+        ((World !st interp) |= Possible ((Real x) $< (Real (Const y))) /\
+        (World !st interp) |= Possible ((Real x) $> (Real (Const y)))))
+      ps_obs ps_th
+  | _ -> false
+  end
+  } ensures {
+    match (dist_obs) with
+    | CategoricalD ps_obs ->
+      let pv = result in
+      pvalue result /\
+      let h = power_divergence_hypothesis ps_obs (map (fun r -> Const r) ps_th) in
+      !st = !(old st) ++ (Cons ("power_divergence", h, Eq pv) Nil)
+    | _ -> true
+    end
+  }
+end

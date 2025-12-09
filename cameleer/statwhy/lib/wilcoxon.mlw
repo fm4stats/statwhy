@@ -1,34 +1,31 @@
 (* This module is a statwhy implementation of Wilcoxon's *signed-rank* test *)
-(* The specification is based on scipy.stats.wilcoxon (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html#scipy.stats.wilcoxon) *)
+(* The specification is based on scipy.stats.wilcoxon (https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.wilcoxon.html) *)
 module Wilcoxon
   use cameleerBHL.CameleerBHL
 
-  val exec_wilcoxon (p1 : population) (p2 : population) (y : dataset (list real, list real)) (alt : alternative) : real
+  val exec_wilcoxon (d1 d2: distribution) (y1 y2 : dataset real) (alt : alternative) : real
   writes { st }
   requires {
-    match y with
-    | (y1, y2) ->    
-        paired y1 y2 /\
-        sampled y1 p1 /\ sampled y2 p2 /\
-        let r1 = mean p1 in
-        let r2 = mean p2 in
-        match alt with
-        | Two ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Up ->
-          (World !st interp) |= Not (Possible (r1 $< r2)) /\
-          (World !st interp) |= Possible (r1 $> r2)
-        | Low ->
-          (World !st interp) |= Possible (r1 $< r2) /\
-          (World !st interp) |= Not (Possible (r1 $> r2))
-        end
+    paired y1 y2 /\ scale_leq Interval y1.scale /\ scale_leq Interval y2.scale /\
+    sampled y1 d1 /\ sampled y2 d2 /\
+    let r1 = mean d1 in
+    let r2 = mean d2 in
+    match alt with
+    | Two ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Up ->
+      (World !st interp) |= Not (Possible (r1 $< r2)) /\
+      (World !st interp) |= Possible (r1 $> r2)
+    | Low ->
+      (World !st interp) |= Possible (r1 $< r2) /\
+      (World !st interp) |= Not (Possible (r1 $> r2))
     end
   } ensures {
     let pv = result in
     pvalue pv /\
-    let r1 = mean p1 in
-    let r2 = mean p2 in
+    let r1 = mean d1 in
+    let r2 = mean d2 in
     let h = match alt with
       | Two -> r1 $!= r2
       | Up -> r1 $> r2

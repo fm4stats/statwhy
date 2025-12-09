@@ -2,170 +2,172 @@
 <!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
 "https://www.why3.org/why3session.dtd">
 <why3session shape_version="6">
-<prover id="0" name="Z3" version="4.12.2" timelimit="1" steplimit="0" memlimit="1000"/>
+<prover id="0" name="Coq" version="8.20.1" timelimit="0" steplimit="0" memlimit="0"/>
 <prover id="1" name="Alt-Ergo" version="2.5.4" timelimit="1" steplimit="0" memlimit="1000"/>
 <prover id="2" name="CVC5" version="1.0.6" timelimit="1" steplimit="0" memlimit="1000"/>
+<prover id="3" name="Z3" version="4.14.1" alternative="noBV" timelimit="1" steplimit="0" memlimit="1000"/>
 <prover id="4" name="Z3" version="4.14.1" timelimit="1" steplimit="0" memlimit="1000"/>
 <prover id="5" name="Coq" version="8.19.0" timelimit="0" steplimit="0" memlimit="0"/>
 <file format="whyml">
 <path name=".."/><path name="atomicFormulas.mlw"/>
 <theory name="Real" proved="true">
  <goal name="Real_equal_refl" proved="true">
- <proof prover="0" obsolete="true"><result status="valid" time="0.033609" steps="187331"/></proof>
- <proof prover="4"><result status="valid" time="0.022843" steps="191914"/></proof>
+ <proof prover="3"><result status="timeout" time="1.067218"/></proof>
+ <proof prover="4"><result status="valid" time="0.022843" steps="192138"/></proof>
  </goal>
  <goal name="Real_equal_symm" proved="true">
- <proof prover="2"><result status="valid" time="0.062553" steps="41266"/></proof>
+ <proof prover="2"><result status="valid" time="0.062553" steps="41226"/></proof>
  </goal>
  <goal name="Real_equal_trans" proved="true">
- <proof prover="2" obsolete="true"><result status="valid" time="0.102030" steps="50831"/></proof>
- <proof prover="4"><result status="valid" time="0.026806" steps="214478"/></proof>
+ <proof prover="2"><result status="valid" time="0.102030" steps="42139"/></proof>
+ <proof prover="4"><result status="valid" time="0.026806" steps="214702"/></proof>
  </goal>
  <goal name="Real_interp_leq" proved="true">
- <proof prover="2" obsolete="true"><result status="valid" time="0.032847" steps="36347"/></proof>
- <proof prover="4"><result status="valid" time="0.050504" steps="326794"/></proof>
+ <proof prover="2"><result status="valid" time="0.032847" steps="36085"/></proof>
+ <proof prover="4"><result status="valid" time="0.050504" steps="327029"/></proof>
  </goal>
  <goal name="neq_tautology" proved="true">
- <proof prover="2"><result status="valid" time="0.078344" steps="43715"/></proof>
+ <proof prover="2"><result status="valid" time="0.078344" steps="43675"/></proof>
  </goal>
  <goal name="not_neq_implies_eq" proved="true">
- <proof prover="2"><result status="valid" time="0.079689" steps="43754"/></proof>
+ <proof prover="2"><result status="valid" time="0.079689" steps="43714"/></proof>
  </goal>
  <goal name="leq_or_eq_or_geq" proved="true">
- <proof prover="2" obsolete="true"><result status="valid" time="0.079908" steps="50815"/></proof>
- <proof prover="4"><result status="valid" time="0.036309" steps="267789"/></proof>
+ <proof prover="2"><result status="valid" time="0.079908" steps="44645"/></proof>
+ <proof prover="4"><result status="valid" time="0.036309" steps="268028"/></proof>
  </goal>
  <goal name="not_eq_implies_leq_or_geq" proved="true">
- <proof prover="2" obsolete="true"><result status="valid" time="0.036524" steps="40744"/></proof>
- <proof prover="4"><result status="valid" time="0.006698" steps="15554"/></proof>
+ <proof prover="2"><result status="valid" time="0.036524" steps="36130"/></proof>
+ <proof prover="4"><result status="valid" time="0.006698" steps="15523"/></proof>
  </goal>
  <goal name="neq_implies_leq_or_geq" proved="true">
- <proof prover="2" obsolete="true"><result status="valid" time="0.079445" steps="51218"/></proof>
- <proof prover="4"><result status="valid" time="0.031947" steps="269200"/></proof>
+ <proof prover="2"><result status="valid" time="0.079445" steps="44577"/></proof>
+ <proof prover="4"><result status="valid" time="0.031947" steps="269440"/></proof>
  </goal>
  <goal name="eq_real_number_soundness" proved="true">
- <proof prover="2"><result status="valid" time="0.073901" steps="44704"/></proof>
+ <proof prover="2"><result status="valid" time="0.073901" steps="44664"/></proof>
  </goal>
 </theory>
 <theory name="Ppl">
  <goal name="Ppl_check_variance_normald_const" proved="true">
- <proof prover="2"><result status="valid" time="0.105953" steps="49379"/></proof>
+ <proof prover="2"><result status="valid" time="0.105953" steps="49352"/></proof>
  </goal>
  <goal name="Ppl_check_variance_normald_param" proved="true">
- <proof prover="2"><result status="timeout" time="1.000000" steps="127611"/></proof>
- <proof prover="4"><result status="timeout" time="1.000000" steps="2722082"/></proof>
- <proof prover="5"><path name="atomicFormulas_Ppl_Ppl_check_variance_normald_param_2.v"/><result status="valid" time="0.360365"/></proof>
+ <proof prover="0"><path name="atomicFormulas_Ppl_Ppl_check_variance_normald_param_2.v"/><result status="valid" time="0.536947"/></proof>
+ <proof prover="2"><result status="timeout" time="1.000000" steps="139681"/></proof>
+ <proof prover="4"><result status="timeout" time="1.000000" steps="2517972"/></proof>
  <transf name="split_vc" >
   <goal name="Ppl_check_variance_normald_param.0">
-  <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="420365"/></proof>
-  <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="13925107"/></proof>
+  <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="26.500388" steps="629967"/></proof>
+  <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="26.246880" steps="13968626"/></proof>
   </goal>
  </transf>
  </goal>
  <goal name="Eq_variance_ref" proved="true">
- <proof prover="0" obsolete="true"><result status="valid" time="0.041830" steps="243013"/></proof>
- <proof prover="2" timelimit="120" memlimit="10000"><result status="valid" time="0.086425" steps="46435"/></proof>
+ <proof prover="2" timelimit="120" memlimit="10000"><result status="valid" time="0.086425" steps="46438"/></proof>
+ <proof prover="3"><result status="timeout" time="1.083660"/></proof>
  </goal>
  <goal name="Eq_variance_sym" proved="true">
- <proof prover="2"><result status="valid" time="0.192165" steps="59089"/></proof>
+ <proof prover="2"><result status="valid" time="0.192165" steps="59042"/></proof>
  </goal>
  <goal name="Eq_variance_assoc" proved="true">
- <proof prover="0" obsolete="true"><result status="valid" time="0.157289" steps="931613"/></proof>
- <proof prover="2" timelimit="120" memlimit="10000"><result status="valid" time="0.214879" steps="70575"/></proof>
+ <proof prover="2" timelimit="120" memlimit="10000"><result status="valid" time="0.214879" steps="70496"/></proof>
+ <proof prover="3"><result status="timeout" time="1.314578"/></proof>
  </goal>
  <goal name="Eq_variance_same_var" proved="true">
- <proof prover="0" obsolete="true"><result status="timeout" time="1.000000" steps="2417978"/></proof>
  <proof prover="1" obsolete="true"><result status="timeout" time="1.000000" steps="12422"/></proof>
- <proof prover="2"><result status="timeout" time="1.000000" steps="93178"/></proof>
+ <proof prover="2"><result status="timeout" time="1.000000" steps="93228"/></proof>
+ <proof prover="3"><result status="timeout" time="1.000000"/></proof>
  <transf name="split_vc" proved="true" >
   <goal name="Eq_variance_same_var.0" proved="true">
-  <proof prover="2"><result status="valid" time="0.039098" steps="42166"/></proof>
+  <proof prover="2"><result status="valid" time="0.039098" steps="42169"/></proof>
   </goal>
   <goal name="Eq_variance_same_var.1" proved="true">
-  <proof prover="2"><result status="valid" time="0.038803" steps="42183"/></proof>
+  <proof prover="2"><result status="valid" time="0.038803" steps="42186"/></proof>
   </goal>
   <goal name="Eq_variance_same_var.2" proved="true">
-  <proof prover="2"><result status="valid" time="0.095246" steps="46160"/></proof>
+  <proof prover="2"><result status="valid" time="0.095246" steps="46138"/></proof>
   </goal>
   <goal name="Eq_variance_same_var.3" proved="true">
-  <proof prover="2"><result status="valid" time="0.070749" steps="47278"/></proof>
+  <proof prover="2"><result status="valid" time="0.070749" steps="47256"/></proof>
   </goal>
  </transf>
  </goal>
  <goal name="Eq_mean.Refl" proved="true">
- <proof prover="2"><result status="valid" time="0.095505" steps="43702"/></proof>
+ <proof prover="2"><result status="valid" time="0.095505" steps="43705"/></proof>
  </goal>
  <goal name="Eq_mean.Trans" proved="true">
- <proof prover="2"><result status="valid" time="0.160762" steps="52760"/></proof>
+ <proof prover="2"><result status="valid" time="0.160762" steps="52703"/></proof>
  </goal>
  <goal name="Eq_mean.Symm" proved="true">
- <proof prover="2"><result status="valid" time="0.086701" steps="45150"/></proof>
+ <proof prover="2"><result status="valid" time="0.086701" steps="45153"/></proof>
  </goal>
  <goal name="Eq_variance_same_mean" proved="true">
- <proof prover="0" obsolete="true"><result status="timeout" time="1.000000" steps="1929910"/></proof>
  <proof prover="1" obsolete="true"><result status="timeout" time="1.000000" steps="9948"/></proof>
- <proof prover="2"><result status="timeout" time="1.000000" steps="174301"/></proof>
+ <proof prover="2"><result status="timeout" time="1.000000" steps="125055"/></proof>
+ <proof prover="3"><result status="timeout" time="1.000000"/></proof>
  <transf name="split_vc" proved="true" >
   <goal name="Eq_variance_same_mean.0" proved="true">
-  <proof prover="2"><result status="valid" time="0.038538" steps="42360"/></proof>
+  <proof prover="2"><result status="valid" time="0.038538" steps="42363"/></proof>
   </goal>
   <goal name="Eq_variance_same_mean.1" proved="true">
-  <proof prover="2"><result status="valid" time="0.090447" steps="42377"/></proof>
+  <proof prover="2"><result status="valid" time="0.090447" steps="42380"/></proof>
   </goal>
   <goal name="Eq_variance_same_mean.2" proved="true">
-  <proof prover="2"><result status="valid" time="0.038542" steps="46354"/></proof>
+  <proof prover="2"><result status="valid" time="0.038542" steps="46332"/></proof>
   </goal>
   <goal name="Eq_variance_same_mean.3" proved="true">
-  <proof prover="2"><result status="valid" time="0.066498" steps="44878"/></proof>
+  <proof prover="2"><result status="valid" time="0.066498" steps="44881"/></proof>
   </goal>
  </transf>
  </goal>
  <goal name="is_prob_dist_const_implies_is_prob_dist_const">
- <proof prover="0" obsolete="true"><result status="timeout" time="1.000000" steps="679305"/></proof>
  <proof prover="1" obsolete="true"><result status="timeout" time="1.000000" steps="14784"/></proof>
- <proof prover="2"><result status="timeout" time="1.000000" steps="162098"/></proof>
+ <proof prover="2"><result status="timeout" time="1.000000" steps="121997"/></proof>
+ <proof prover="3"><result status="timeout" time="1.000000"/></proof>
  <transf name="split_vc" >
   <goal name="is_prob_dist_const_implies_is_prob_dist_const.0">
-  <proof prover="0" timelimit="5" memlimit="2000" obsolete="true"><result status="timeout" time="5.000000" steps="4838259"/></proof>
+  <proof prover="0" obsolete="true"><path name="atomicFormulas_Ppl_is_prob_dist_const_implies_is_prob_dist_const_4.v"/><result status="unknown" time="0.000000" steps="0"/></proof>
   <proof prover="1" obsolete="true"><result status="timeout" time="1.000000" steps="15735"/></proof>
-  <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="2056529"/></proof>
-  <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="32773039"/></proof>
+  <proof prover="2" timelimit="120" memlimit="10000"><undone/></proof>
+  <proof prover="3" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000"/></proof>
+  <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="25.757161" steps="32543687"/></proof>
   </goal>
   <goal name="is_prob_dist_const_implies_is_prob_dist_const.1">
-  <proof prover="0" timelimit="5" memlimit="2000" obsolete="true"><result status="timeout" time="4.354440" steps="4941872"/></proof>
   <proof prover="1" timelimit="5" memlimit="2000" obsolete="true"><result status="timeout" time="5.000000" steps="48424"/></proof>
-  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="210686"/></proof>
-  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5416110"/></proof>
+  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="329078"/></proof>
+  <proof prover="3" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000"/></proof>
+  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="4.283625" steps="5267721"/></proof>
   <transf name="inline_goal" >
    <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0">
    <transf name="split_all_full" >
     <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.0">
-    <proof prover="2"><result status="timeout" time="1.000000" steps="122983"/></proof>
-    <proof prover="4"><result status="timeout" time="1.000000" steps="2447549"/></proof>
+    <proof prover="2"><result status="timeout" time="1.000000" steps="124454"/></proof>
+    <proof prover="4"><result status="timeout" time="1.000000" steps="2876372"/></proof>
     <transf name="split_vc" >
      <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.0.0">
-     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="719469"/></proof>
-     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5098505"/></proof>
+     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="719476"/></proof>
+     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5088798"/></proof>
      <transf name="inline_goal" >
       <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.0.0.0">
-      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="3434747"/></proof>
-      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="7742093"/></proof>
+      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="26.235542" steps="2661589"/></proof>
+      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="26.468732" steps="7111720"/></proof>
       </goal>
      </transf>
      </goal>
     </transf>
     </goal>
     <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.1">
-    <proof prover="2"><result status="timeout" time="1.000000" steps="123021"/></proof>
-    <proof prover="4"><result status="timeout" time="1.000000" steps="2436340"/></proof>
+    <proof prover="2"><result status="timeout" time="1.000000" steps="124227"/></proof>
+    <proof prover="4"><result status="timeout" time="1.000000" steps="1990673"/></proof>
     <transf name="split_vc" >
      <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.1.0">
-     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="818481"/></proof>
-     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5095574"/></proof>
+     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="691440"/></proof>
+     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5062377"/></proof>
      <transf name="inline_goal" >
       <goal name="is_prob_dist_const_implies_is_prob_dist_const.1.0.1.0.0">
-      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="3386716"/></proof>
-      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="7740481"/></proof>
+      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="26.164537" steps="2625611"/></proof>
+      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="26.280748" steps="7112410"/></proof>
       </goal>
      </transf>
      </goal>
@@ -176,40 +178,40 @@
   </transf>
   </goal>
   <goal name="is_prob_dist_const_implies_is_prob_dist_const.2">
-  <proof prover="0" timelimit="5" memlimit="2000" obsolete="true"><result status="timeout" time="4.341446" steps="4923286"/></proof>
   <proof prover="1" timelimit="5" memlimit="2000" obsolete="true"><result status="timeout" time="5.000000" steps="101275"/></proof>
-  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="512708"/></proof>
-  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5484759"/></proof>
+  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="568385"/></proof>
+  <proof prover="3" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000"/></proof>
+  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5978498"/></proof>
   <transf name="inline_goal" >
    <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0">
    <transf name="split_all_full" >
     <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.0">
-    <proof prover="2"><result status="timeout" time="1.000000" steps="207224"/></proof>
-    <proof prover="4"><result status="timeout" time="1.000000" steps="2293541"/></proof>
+    <proof prover="2"><result status="timeout" time="1.000000" steps="210349"/></proof>
+    <proof prover="4"><result status="timeout" time="0.755081" steps="1901595"/></proof>
     <transf name="split_vc" >
      <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.0.0">
-     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="778266"/></proof>
-     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5223106"/></proof>
+     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="4.246034" steps="678714"/></proof>
+     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="4.200492" steps="5051183"/></proof>
      <transf name="inline_goal" >
       <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.0.0.0">
-      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="3610746"/></proof>
-      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="7726163"/></proof>
+      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="26.210301" steps="2713478"/></proof>
+      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="26.649982" steps="7113618"/></proof>
       </goal>
      </transf>
      </goal>
     </transf>
     </goal>
     <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.1">
-    <proof prover="2"><result status="timeout" time="1.000000" steps="201556"/></proof>
-    <proof prover="4"><result status="timeout" time="0.738706" steps="1934758"/></proof>
+    <proof prover="2"><result status="timeout" time="1.000000" steps="212012"/></proof>
+    <proof prover="4"><result status="timeout" time="1.000000" steps="2288430"/></proof>
     <transf name="split_vc" >
      <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.1.0">
-     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="912073"/></proof>
-     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5198969"/></proof>
+     <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="849629"/></proof>
+     <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="5115923"/></proof>
      <transf name="inline_goal" >
       <goal name="is_prob_dist_const_implies_is_prob_dist_const.2.0.1.0.0">
-      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="3675821"/></proof>
-      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="7741128"/></proof>
+      <proof prover="2" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="2954296"/></proof>
+      <proof prover="4" timelimit="30" memlimit="4000"><result status="timeout" time="30.000000" steps="7691974"/></proof>
       </goal>
      </transf>
      </goal>
@@ -222,17 +224,17 @@
  </transf>
  </goal>
  <goal name="test_prob_dist" proved="true">
- <proof prover="2"><result status="valid" time="0.246979" steps="78895"/></proof>
+ <proof prover="2"><result status="valid" time="0.246979" steps="78789"/></proof>
  </goal>
  <goal name="eq_real_number_list&#39;_refl" proved="true">
  <transf name="induction_ty_lex" proved="true" >
   <goal name="eq_real_number_list&#39;_refl.0" proved="true">
-  <proof prover="2"><result status="valid" time="0.103812" steps="57409"/></proof>
+  <proof prover="2"><result status="valid" time="0.103812" steps="57423"/></proof>
   </goal>
  </transf>
  </goal>
- <goal name="eq_real_number_list&#39;_symm" proved="true">
- <proof prover="5"><path name="atomicFormulas_Ppl_eq_real_number_listqt_symm_1.v"/><result status="valid" time="0.499795"/></proof>
+ <goal name="eq_real_number_list&#39;_symm">
+ <proof prover="5" obsolete="true"><path name="atomicFormulas_Ppl_eq_real_number_listqt_symm_1.v"/><result status="valid" time="0.499795"/></proof>
  </goal>
  <goal name="eq_real_number_list&#39;_trans" proved="true">
  <transf name="intros" proved="true" arg1="p1">
@@ -241,22 +243,22 @@
    <goal name="eq_real_number_list&#39;_trans.0.0" proved="true">
    <transf name="split_vc" proved="true" >
     <goal name="eq_real_number_list&#39;_trans.0.0.0" proved="true">
-    <proof prover="2"><result status="valid" time="0.100274" steps="57791"/></proof>
+    <proof prover="2"><result status="valid" time="0.100274" steps="57805"/></proof>
     </goal>
     <goal name="eq_real_number_list&#39;_trans.0.0.1" proved="true">
     <transf name="destruct_term_subst" proved="true" arg1="p2">
      <goal name="eq_real_number_list&#39;_trans.0.0.1.0" proved="true">
-     <transf name="destruct_term_subst" proved="true" arg1="p3">
-      <goal name="eq_real_number_list&#39;_trans.0.0.1.0.0" proved="true">
-      <proof prover="2"><result status="valid" time="0.093514" steps="56139"/></proof>
-      </goal>
-      <goal name="eq_real_number_list&#39;_trans.0.0.1.0.1" proved="true">
-      <proof prover="2"><result status="valid" time="0.085429" steps="55521"/></proof>
-      </goal>
-     </transf>
+     <proof prover="2"><result status="valid" time="0.087358" steps="62594"/></proof>
      </goal>
      <goal name="eq_real_number_list&#39;_trans.0.0.1.1" proved="true">
-     <proof prover="2"><result status="valid" time="0.087358" steps="55386"/></proof>
+     <transf name="destruct_term_subst" proved="true" arg1="p3">
+      <goal name="eq_real_number_list&#39;_trans.0.0.1.1.0" proved="true">
+      <proof prover="2"><result status="valid" time="0.093514" steps="55529"/></proof>
+      </goal>
+      <goal name="eq_real_number_list&#39;_trans.0.0.1.1.1" proved="true">
+      <proof prover="2"><result status="valid" time="0.085429" steps="44830"/></proof>
+      </goal>
+     </transf>
      </goal>
     </transf>
     </goal>
@@ -271,51 +273,61 @@
   <goal name="eq_real_number_list&#39;_soundness.0" proved="true">
   <transf name="induction_arg_ty_lex" proved="true" arg1="p1">
    <goal name="eq_real_number_list&#39;_soundness.0.0" proved="true">
-   <proof prover="2"><result status="valid" time="0.223021" steps="82339"/></proof>
+   <proof prover="2"><result status="valid" time="0.346759" steps="82063"/></proof>
    </goal>
   </transf>
   </goal>
  </transf>
  </goal>
  <goal name="eq_p_refl" proved="true">
- <proof prover="2"><result status="timeout" time="1.000000" steps="165986"/></proof>
- <proof prover="4"><result status="timeout" time="1.000000" steps="3785153"/></proof>
+ <proof prover="2"><result status="timeout" time="1.000000" steps="137890"/></proof>
+ <proof prover="4"><result status="timeout" time="1.000000" steps="2416276"/></proof>
  <transf name="intros" proved="true" arg1="p">
   <goal name="eq_p_refl.0" proved="true">
   <transf name="destruct_term_subst" proved="true" arg1="p">
    <goal name="eq_p_refl.0.0" proved="true">
-   <proof prover="4"><result status="valid" time="0.032831" steps="270966"/></proof>
+   <proof prover="4"><result status="valid" time="0.035116" steps="270528"/></proof>
    </goal>
    <goal name="eq_p_refl.0.1" proved="true">
-   <proof prover="4"><result status="valid" time="0.033281" steps="271020"/></proof>
-   </goal>
-   <goal name="eq_p_refl.0.2" proved="true">
-   <proof prover="4"><result status="valid" time="0.035116" steps="277898"/></proof>
-   </goal>
-   <goal name="eq_p_refl.0.3" proved="true">
-   <proof prover="2"><result status="valid" time="0.085770" steps="50416"/></proof>
-   <proof prover="4"><result status="valid" time="0.036761" steps="281126"/></proof>
+   <proof prover="2"><result status="valid" time="0.085770" steps="50197"/></proof>
+   <proof prover="4"><result status="valid" time="0.036761" steps="270582"/></proof>
    <transf name="split_vc" proved="true" >
-    <goal name="eq_p_refl.0.3.0" proved="true">
-    <proof prover="4"><result status="valid" time="0.035236" steps="281101"/></proof>
+    <goal name="eq_p_refl.0.1.0" proved="true">
+    <proof prover="4"><result status="valid" time="0.035236" steps="270553"/></proof>
     </goal>
    </transf>
+   </goal>
+   <goal name="eq_p_refl.0.2" proved="true">
+   <proof prover="4"><result status="valid" time="0.033281" steps="280620"/></proof>
+   </goal>
+   <goal name="eq_p_refl.0.0">
+   <proof prover="4"><result status="valid" time="0.032831" steps="270966"/></proof>
    </goal>
   </transf>
   </goal>
  </transf>
  <transf name="split_vc" >
   <goal name="eq_p_refl.0">
-  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="305587"/></proof>
-  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="10763890"/></proof>
+  <proof prover="2" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="451223"/></proof>
+  <proof prover="4" timelimit="5" memlimit="2000"><result status="timeout" time="5.000000" steps="10665325"/></proof>
   </goal>
  </transf>
  </goal>
  <goal name="eq_population_soundness" proved="true">
- <proof prover="2"><result status="valid" time="0.156398" steps="72053"/></proof>
+ <proof prover="2"><result status="valid" time="0.156398" steps="70524"/></proof>
  </goal>
  <goal name="is_not_normal_interp" proved="true">
- <proof prover="2"><result status="valid" time="0.155409" steps="55987"/></proof>
+ <proof prover="2"><result status="valid" time="0.155409" steps="55912"/></proof>
+ </goal>
+ <goal name="normalD_is_normal" proved="true">
+ <proof prover="2"><result status="valid" time="0.119001" steps="53949"/></proof>
+ </goal>
+ <goal name="dichotomous_CategoricalD_is_bernoulli" proved="true">
+ <transf name="compute_in_goal_statwhy" proved="true" >
+  <goal name="dichotomous_CategoricalD_is_bernoulli.0" proved="true">
+  <proof prover="2"><result status="valid" time="0.221666" steps="74260"/></proof>
+  </goal>
+ </transf>
  </goal>
 </theory>
 <theory name="Paired" proved="true">
