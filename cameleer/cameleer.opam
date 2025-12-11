@@ -17,6 +17,7 @@ build: [
   ["dune" "runtest" "-p" name] {with-test}
 ]
 depends: [
+  "cmdliner" {< "2.0.0"}
   "dune" {>= "2.4.0"}
   "why3" {= "1.8.0"}
   "why3-ide" {>= "1.5.0"}
