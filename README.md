@@ -34,6 +34,22 @@ We have tested the tool StatWhy by (i) checking that StatWhy can correctly verif
 
 ## Installing StatWhy
 
+### Auto Installation using Bash Script (Ubuntu 24.04)
+
+On Ubuntu 24.04, StatWhy can be installed by running the following commands:
+
+``` bash
+$ chmod +x install.sh
+$ ./install.sh
+```
+
+During installation, you will be prompted to enter `y` or `n` multiple times.
+Press `y` when prompted.
+
+After installation, restart the machine or log in again to apply the changes made to `~/.profile`.
+
+### Manual Installation
+
 1. Install opam
 
 On Ubuntu:
