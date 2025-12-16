@@ -41,4 +41,5 @@
   (tukey_HSD.mlw as why3/stdlib/tukey_HSD.mlw)
   (utility.mlw as why3/stdlib/utility.mlw)
   (wilcoxon.mlw as why3/stdlib/wilcoxon.mlw))
+  (williams.mlw as why3/stdlib/williams.mlw)
 (package cameleer))

@@ -1,0 +1,219 @@
+module Williams_example
+  use cameleerBHL.CameleerBHL
+  use williams.Williams
+  use array.Array
+
+  let function mu0 = "mu0"
+  let function p0  = NormalD (Param mu0) (Const 1.0)
+  let function t_mu0 = RealT (mean p0)
+
+  let function mu1 = "mu1"
+  let function mu2 = "mu2"
+  let function mu3 = "mu3"
+  let function mu4 = "mu4"
+  let function mu5 = "mu5"
+  let function mu6 = "mu6"
+  let function mu7 = "mu7"
+
+  let function p1 = NormalD (Param mu1) (Const 1.0)
+  let function p2 = NormalD (Param mu2) (Const 1.0)
+  let function p3 = NormalD (Param mu3) (Const 1.0)
+  let function p4 = NormalD (Param mu4) (Const 1.0)
+  let function p5 = NormalD (Param mu5) (Const 1.0)
+  let function p6 = NormalD (Param mu6) (Const 1.0)
+  let function p7 = NormalD (Param mu7) (Const 1.0)
+
+  let ex_williams1 (d1 : (dataset real)) (c : dataset real) : array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 Nil)
+                 (Cons p1 Nil) /\
+               sampled c p0 /\
+               d1.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 Nil) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate (Cons p1 Nil) 0)
+    }
+    = exec_williams (Cons p1 Nil) p0 (Cons d1 Nil) c Up
+
+  let ex_williams2 (d1 d2 : (dataset real)) (c : dataset real) : array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 Nil))
+                 (Cons p1 (Cons p2 Nil)) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 Nil)) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate (Cons p1 (Cons p2 Nil)) 0)
+    }
+    = exec_williams (Cons p1 (Cons p2 Nil)) p0 (Cons d1 (Cons d2 Nil)) c Up
+
+  let ex_williams3 (d1 d2 d3 : (dataset real)) (c : dataset real) : array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 (Cons d3 Nil)))
+                 (Cons p1 (Cons p2 (Cons p3 Nil))) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = d3.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 (Cons p3 Nil))) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p3)) /\
+               ((World !st interp) |= Know (mean p3 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate (Cons p1 (Cons p2 (Cons p3 Nil))) 0)
+    }
+    = exec_williams (Cons p1 (Cons p2 (Cons p3 Nil))) p0 (Cons d1 (Cons d2 (Cons d3 Nil))) c Up
+
+  let ex_williams4 (d1 d2 d3 d4 : (dataset real)) (c : dataset real) : array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil))))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = d3.scale = d4.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p3)) /\
+               ((World !st interp) |= Know (mean p3 $<= mean p4)) /\
+               ((World !st interp) |= Know (mean p4 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate
+                (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil))))
+                0)
+    }
+    = exec_williams (Cons p1 (Cons p2 (Cons p3 (Cons p4 Nil)))) p0 (Cons d1 (Cons d2 (Cons d3 (Cons d4 Nil)))) c Up
+
+  let ex_williams5 (d1 d2 d3 d4 d5 : (dataset real)) (c : dataset real): array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil)))))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil))))) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil))))) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p3)) /\
+               ((World !st interp) |= Know (mean p3 $<= mean p4)) /\
+               ((World !st interp) |= Know (mean p4 $<= mean p5)) /\
+               ((World !st interp) |= Know (mean p5 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate
+                (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil)))))
+                0)
+    }
+    = exec_williams (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 Nil))))) p0
+                   (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 Nil))))) c Up
+
+  let ex_williams6 (d1 d2 d3 d4 d5 d6 : (dataset real)) (c : dataset real): array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil))))))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil)))))) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = d6.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil)))))) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p3)) /\
+               ((World !st interp) |= Know (mean p3 $<= mean p4)) /\
+               ((World !st interp) |= Know (mean p4 $<= mean p5)) /\
+               ((World !st interp) |= Know (mean p5 $<= mean p6)) /\
+               ((World !st interp) |= Know (mean p6 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate
+                (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil))))))
+                0)
+    }
+    = exec_williams (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 Nil)))))) p0
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 Nil)))))) c Up
+
+  let ex_williams7 (d1 d2 d3 d4 d5 d6 d7 : (dataset real)) (c : dataset real): array real
+    requires { !st = Nil /\
+               for_all2
+                 sampled
+                 (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil)))))))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil))))))) /\
+               sampled c p0 /\
+               d1.scale = d2.scale = d3.scale = d4.scale = d5.scale = d6.scale = d7.scale = c.scale = Interval /\
+               for_all
+                 (fun p -> (World !st interp) |= Not (Possible (mean p0 $< mean p)) /\
+                           (World !st interp) |= Possible (mean p0 $> mean p))
+                 (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil))))))) /\
+               ((World !st interp) |= Know (mean p1 $<= mean p2)) /\
+               ((World !st interp) |= Know (mean p2 $<= mean p3)) /\
+               ((World !st interp) |= Know (mean p3 $<= mean p4)) /\
+               ((World !st interp) |= Know (mean p4 $<= mean p5)) /\
+               ((World !st interp) |= Know (mean p5 $<= mean p6)) /\
+               ((World !st interp) |= Know (mean p6 $<= mean p7)) /\
+               ((World !st interp) |= Know (mean p7 $<= mean p0))
+             }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,p) = t in
+                (Eq (ps[i]) = compose_pvs (mean p0 $> mean p) !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) (mean p0 $> mean p)))
+              (enumerate
+                (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil)))))))
+                0)
+    }
+    = exec_williams
+        (Cons p1 (Cons p2 (Cons p3 (Cons p4 (Cons p5 (Cons p6 (Cons p7 Nil))))))) p0
+        (Cons d1 (Cons d2 (Cons d3 (Cons d4 (Cons d5 (Cons d6 (Cons d7 Nil))))))) c Up
+end
