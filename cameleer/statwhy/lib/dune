@@ -28,7 +28,6 @@
   (normality_test.mlw as why3/stdlib/normality_test.mlw)
   (oneway_ANOVA.mlw as why3/stdlib/oneway_ANOVA.mlw)
   (parcomp.mlw as why3/stdlib/parcomp.mlw)
-  (poisson.mlw as why3/stdlib/poisson.mlw)
   (power_divergence.mlw as why3/stdlib/power_divergence.mlw)
   (quantile_test.mlw as why3/stdlib/quantile_test.mlw)
   (ranksums.mlw as why3/stdlib/ranksums.mlw)
