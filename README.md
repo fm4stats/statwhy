@@ -25,7 +25,7 @@ root/
 StatWhy has been tested on the following environments:
 
 1. MacBook Pro -- M2 Max CPU, 96 GB RAM, macOS 15.3.2
-2. DELL Precision 5490 -- Intel Core Ultra 9 185H, 64 GB RAM, Windows 11 (via WSL)
+2. DELL Precision 5490 -- Intel Core Ultra 9 185H, 64 GB RAM, Windows 11 and Ubuntu 24.04 (via VirtualBox)
 
 ## Correctness of StatWhy
 
