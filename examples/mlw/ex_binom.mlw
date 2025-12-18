@@ -1,0 +1,21 @@
+module Binom_example
+  use cameleerBHL.CameleerBHL
+  use binom.Binom
+  
+  let function p : parameter = "parameter1"
+  
+  let function bp = CategoricalD (Cons (Param p) Nil)
+
+  let ex_binom (k : 'a -> bool) (p0 : real) (d : dataset 'a) : real
+  requires {
+    is_empty !st /\
+    d.scale = Nominal /\
+    (World !st interp) |= Possible (Real (Param p) $< const_term p0) /\
+    (World !st interp) |= Possible (Real (Param p) $> const_term p0)
+  } ensures {
+    let pv = result in
+    (Eq pv) = compose_pvs (bernoullip bp $!= const_term p0) !st &&
+    (World !st interp) |= StatB (Eq pv) (bernoullip bp $!= const_term p0)
+  }
+  = exec_binom_test bp k p0 d Two
+end
