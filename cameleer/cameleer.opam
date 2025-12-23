@@ -32,6 +32,10 @@ depends: [
   ("lablgtk3" & "lablgtk3-sourceview3")
 ]
 
+post-messages: [
+  "If you update from an older version of StatWhy or have updated CVC5 since your last StatWhy installation, we recommend deleting the old ~/.statwhy.conf file."
+]
+
 conflicts: [
   "lablgtk" {< "2.14.2"}
 ]

@@ -13,7 +13,12 @@ let spec =
     ( "-L",
       Arg.String (fun s -> Queue.add s path),
       "add <dir> to the search path" );
-    ("--genconf", Arg.Unit (fun () -> Genconf.generate_conf_file (); exit 0), "generate config file");
+    ("--genconf",
+     Arg.Unit
+       (fun () ->
+          match Genconf.generate_conf_file () with
+          | Some () -> exit 0
+          | None -> exit 1), "generate config file");
     ("--debug", Arg.Unit (fun () -> debug := true), "print debug information");
     ("--batch", Arg.Unit (fun () -> batch := true), "activate batch mode");
     ( "--extract",
@@ -31,7 +36,7 @@ let spec =
   ]
 
 let usage_msg =
-  sprintf "%s <file>.(ml|mlw)\nVerify (OCaml|WhyML) program\n" Sys.argv.(0)
+  sprintf "%s <file>.(ml|mlw)\nVerify statistical (OCaml|WhyML) program\n" Sys.argv.(0)
 
 let usage () =
   Arg.usage spec usage_msg;
@@ -61,8 +66,9 @@ let execute_batch fname path debug prover =
 let ensure_conf_exists () =
   let name = Filename.concat (Sys.getenv "HOME") ".statwhy.conf" in
   if Sys.file_exists name then () else
-    (Genconf.generate_conf_file ();
-     print_endline ".statwhy.conf is generated.")
+    match Genconf.generate_conf_file (); with
+    | Some _ -> ()
+    | None -> exit 1
     
 
 let batch = !batch

@@ -6,11 +6,10 @@ let run_command cmd =
     output
   with End_of_file -> ""
 
-
 (* get cvc5 version *)
 let get_cvc5_version () =
-  run_command "cvc5 -V | awk '/This is cvc5 version/ {print $5}'"
-  |> String.trim
+  let str = run_command "cvc5 -V | awk '/This is cvc5 version/ {print $5}'" |> String.trim in
+  if str = "" then None else Some str
 
 (* template *)
 let temp = String.trim "
@@ -69,9 +68,13 @@ shortcut = \"5\"
 "
 
 let generate_conf_file () =
-  let version = get_cvc5_version () in
-  let target = ".statwhy.conf" in
-  let home = Sys.getenv "HOME" in
-  let home_target = Filename.concat home target in
-  let sed_cmd = Printf.sprintf "echo '%s' | sed 's/???/%s/g' > %s" temp version home_target in
-  ignore (run_command sed_cmd)
+  match get_cvc5_version () with
+  | None -> Printf.eprintf "CVC5 was not found\n"; None
+  | Some version ->
+      let target = ".statwhy.conf" in
+      let home = Sys.getenv "HOME" in
+      let home_target = Filename.concat home target in
+      let sed_cmd = Printf.sprintf "echo '%s' | sed 's/???/%s/g' > %s" temp version home_target in
+      ignore (run_command sed_cmd);
+      print_endline ".statwhy.conf is generated.";
+      Some ()
