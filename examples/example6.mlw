@@ -1,0 +1,47 @@
+module Example6_Tukey_HSD
+  use cameleerBHL.CameleerBHL
+  use tukey_HSD.Tukey_HSD
+  use array.Array
+
+  let function mu1 : parameter = "mu1"
+  let function mu2 : parameter = "mu2"
+  let function mu3 : parameter = "mu3"
+
+  let function t_n1 : distribution = NormalD (Param mu1) (Param "var")
+  let function t_n2 : distribution = NormalD (Param mu2) (Param "var")
+  let function t_n3 : distribution = NormalD (Param mu3) (Param "var")
+
+  let function t_mu1 = RealT (mean t_n1)
+  let function t_mu2 = RealT (mean t_n2)
+  let function t_mu3 = RealT (mean t_n3)
+
+  let function terms3 = (Cons t_mu1 (Cons t_mu2 (Cons t_mu3 Nil)))
+
+  (* Execute Tukey's HSD test for multiple comparison of 3 groups *)
+  let example6_tukey_hsd (d1 d2 d3 : dataset real) : array real
+    requires {
+      is_empty !st /\
+      independent_list (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+      for_all2
+        sampled
+        (Cons d1 (Cons d2 (Cons d3 Nil)))
+        (Cons t_n1 (Cons t_n2 (Cons t_n3 Nil))) /\
+      for_all
+        (fun d -> d.scale = Interval)
+        (Cons d1 (Cons d2 (Cons d3 Nil))) /\
+      for_all (fun fml -> (World !st interp) |= Possible fml)
+              (combinations terms3 "<") /\
+      for_all (fun fml -> (World !st interp) |= Possible fml)
+              (combinations terms3 ">")
+    }
+    ensures {
+      let ps = result in
+      for_all (fun t -> let (i,fml) = t in
+                (Eq (ps[i]) = compose_pvs fml !st) &&
+                (World !st interp |= StatB (Eq (ps[i])) fml))
+              (enumerate (combinations terms3 "!=") 0)
+    }
+    = exec_tukey_hsd
+        (Cons t_n1 (Cons t_n2 (Cons t_n3 Nil)))
+        (Cons d1 (Cons d2 (Cons d3 Nil)))
+end

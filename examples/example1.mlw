@@ -1,0 +1,46 @@
+module Example1
+  use cameleerBHL.CameleerBHL
+  use ttest.Ttest
+
+  (* Declarations of a distribution and formulas *)
+  let function mu1 : parameter = "mu1"
+  let function v   : parameter = "var"
+  let function t_n : distribution = NormalD (Param mu1) (Param v)
+
+  let function fmlA_l : formula = mean t_n $< const_term 1.0
+  let function fmlA_u : formula = mean t_n $> const_term 1.0
+  let function fmlA   : formula = mean t_n $!= const_term 1.0
+
+  (* executes the t-test for a population mean *)
+  let example1 (d : dataset real) : real
+    requires {
+      is_empty !st /\
+      sampled d t_n /\
+      d.scale = Interval /\
+      (World !st interp) |= Possible fmlA_l /\
+      (World !st interp) |= Possible fmlA_u
+    }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs fmlA !st &&
+      (World !st interp) |= StatB (Eq p) fmlA
+    }
+    = exec_ttest_1samp t_n 1.0 d Two
+
+  (* executes the same test but lacks one of the precondition, "sampled d t_n" *)
+  (* This program is INCORRECT and so its verification FAILS *)
+  let example1' (d : dataset real) : real
+    requires {
+      is_empty !st /\
+      (* sampled d t_n /\ *)
+      d.scale = Interval /\
+      (World !st interp) |= Possible fmlA_l /\
+      (World !st interp) |= Possible fmlA_u
+    }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs fmlA !st &&
+      (World !st interp) |= StatB (Eq p) fmlA
+    }
+    = exec_ttest_1samp t_n 1.0 d Two
+end

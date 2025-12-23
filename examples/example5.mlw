@@ -1,0 +1,38 @@
+module Example5
+  use cameleerBHL.CameleerBHL
+  use ttest.Ttest
+  use real.RealInfix
+
+  let function mu1 : parameter = "mu1"
+  let function v   : parameter = "var"
+  let function t_n : distribution = NormalD (Param mu1) (Param v)
+
+  let function fmlA_l : formula = mean t_n $< const_term 1.0
+  let function fmlA_u : formula = mean t_n $> const_term 1.0
+  let function fmlA   : formula = mean t_n $!= const_term 1.0
+
+  let min_real (x y: real) : real = if x <=. y then x else y
+
+  (* Example of p-value hacking *)
+  (* This program is INCORRECT and so its verification FAILS *)
+  let example5 (d1 d2 : dataset real) : (real, real, real)
+    requires {
+      is_empty !st /\
+      sampled d1 t_n /\ sampled d2 t_n /\
+      d1.scale = Interval /\ d2.scale = Interval /\
+      (World !st interp) |= Possible fmlA_l /\
+      (World !st interp) |= Possible fmlA_u
+    }
+    ensures {
+      let (p1, p2, p) = result in
+      ((Eq p = compose_pvs fmlA !st (* This is incorrect *)
+        && (World !st interp) |= StatB (Eq p) fmlA) &&
+       (Leq (p1 +. p2) = compose_pvs fmlA !st (* This is correct *)
+        && (World !st interp) |= StatB (Leq (p1 +. p2)) fmlA))
+    }
+    =
+      let p1 = exec_ttest_1samp t_n 1.0 d1 Two in
+      let p2 = exec_ttest_1samp t_n 1.0 d2 Two in
+      let p  = min_real p1 p2 in
+      (p1, p2, p)
+end

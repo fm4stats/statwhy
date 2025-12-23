@@ -1,0 +1,121 @@
+module Example4
+  use cameleerBHL.CameleerBHL
+  use ttest.Ttest
+  use real.RealInfix
+
+  let function mu1 : parameter = "mu1"
+  let function mu2 : parameter = "mu2"
+  let function mu3 : parameter = "mu3"
+  let function v   : parameter = "var"
+
+  let function t_n1 : distribution = NormalD (Param mu1) (Param v)
+  let function t_n2 : distribution = NormalD (Param mu2) (Param v)
+  let function t_n3 : distribution = NormalD (Param mu3) (Param v)
+
+  let function fmlA_l : formula = mean t_n1 $< mean t_n2
+  let function fmlA_u : formula = mean t_n1 $> mean t_n2
+  let function fmlA   : formula = mean t_n1 $!= mean t_n2
+
+  let function fmlB_l : formula = mean t_n1 $< mean t_n3
+  let function fmlB_u : formula = mean t_n1 $> mean t_n3
+  let function fmlB   : formula = mean t_n1 $!= mean t_n3
+
+  let function fmlC_l : formula = mean t_n2 $< mean t_n3
+  let function fmlC_u : formula = mean t_n2 $> mean t_n3
+  let function fmlC   : formula = mean t_n2 $!= mean t_n3
+
+  let function fml_or_or  : formula = (fmlA $|| fmlB) $|| fmlC
+  let function fml_and_or : formula = (fmlA $&& fmlB) $|| fmlC
+  let function fml_or_and : formula = (fmlA $|| fmlB) $&& fmlC
+  let function fml_and_and: formula = (fmlA $&& fmlB) $&& fmlC
+
+  let min_real (x y: real) : real = if x <=. y then x else y
+
+  (* H1 : (fmlA \/ fmlB) \/ fmlC *)
+  let example_or_or (d1 d2 d3 : dataset real) : real
+    requires {
+      is_empty !st /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\ sampled d3 t_n3 /\
+      d1.scale = Interval /\ d2.scale = Interval /\ d3.scale = Interval /\
+      independent d1 d2 /\ independent d1 d3 /\ independent d2 d3 /\
+      (World !st interp) |= Possible fmlA_l /\ (World !st interp) |= Possible fmlA_u /\
+      (World !st interp) |= Possible fmlB_l /\ (World !st interp) |= Possible fmlB_u /\
+      (World !st interp) |= Possible fmlC_l /\ (World !st interp) |= Possible fmlC_u
+    }
+    ensures {
+      let p = result in
+      (Leq p) = compose_pvs fml_or_or !st &&
+      (World !st interp) |= StatB (Leq p) fml_or_or
+    }
+    =
+      let p1 = exec_ttest_ind_eq t_n1 t_n2 d1 d2 Two in
+      let p2 = exec_ttest_ind_eq t_n1 t_n3 d1 d3 Two in
+      let p3 = exec_ttest_ind_eq t_n2 t_n3 d2 d3 Two in
+      p1 +. p2 +. p3
+
+  (* H1 : (fmlA /\ fmlB) \/ fmlC *)
+  let example_and_or (d1 d2 d3 : dataset real) : real
+    requires {
+      is_empty !st /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\ sampled d3 t_n3 /\
+      d1.scale = Interval /\ d2.scale = Interval /\ d3.scale = Interval /\
+      independent d1 d2 /\ independent d1 d3 /\ independent d2 d3 /\
+      (World !st interp) |= Possible fmlA_l /\ (World !st interp) |= Possible fmlA_u /\
+      (World !st interp) |= Possible fmlB_l /\ (World !st interp) |= Possible fmlB_u /\
+      (World !st interp) |= Possible fmlC_l /\ (World !st interp) |= Possible fmlC_u
+    }
+    ensures {
+      let p = result in
+      (Leq p) = compose_pvs fml_and_or !st &&
+      (World !st interp) |= StatB (Leq p) fml_and_or
+    }
+    =
+      let p1 = exec_ttest_ind_eq t_n1 t_n2 d1 d2 Two in
+      let p2 = exec_ttest_ind_eq t_n1 t_n3 d1 d3 Two in
+      let p3 = exec_ttest_ind_eq t_n2 t_n3 d2 d3 Two in
+      (min_real p1 p2) +. p3
+
+  (* H1 : (fmlA \/ fmlB) /\ fmlC *)
+  let example_or_and (d1 d2 d3 : dataset real) : real
+    requires {
+      is_empty !st /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\ sampled d3 t_n3 /\
+      d1.scale = Interval /\ d2.scale = Interval /\ d3.scale = Interval /\
+      independent d1 d2 /\ independent d1 d3 /\ independent d2 d3 /\
+      (World !st interp) |= Possible fmlA_l /\ (World !st interp) |= Possible fmlA_u /\
+      (World !st interp) |= Possible fmlB_l /\ (World !st interp) |= Possible fmlB_u /\
+      (World !st interp) |= Possible fmlC_l /\ (World !st interp) |= Possible fmlC_u
+    }
+    ensures {
+      let p = result in
+      (Leq p) = compose_pvs fml_or_and !st &&
+      (World !st interp) |= StatB (Leq p) fml_or_and
+    }
+    =
+      let p1 = exec_ttest_ind_eq t_n1 t_n2 d1 d2 Two in
+      let p2 = exec_ttest_ind_eq t_n1 t_n3 d1 d3 Two in
+      let p3 = exec_ttest_ind_eq t_n2 t_n3 d2 d3 Two in
+      min_real (p1 +. p2) p3
+
+  (* H1 : (fmlA /\ fmlB) /\ fmlC *)
+  let example_and_and (d1 d2 d3 : dataset real) : real
+    requires {
+      is_empty !st /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\ sampled d3 t_n3 /\
+      d1.scale = Interval /\ d2.scale = Interval /\ d3.scale = Interval /\
+      independent d1 d2 /\ independent d1 d3 /\ independent d2 d3 /\
+      (World !st interp) |= Possible fmlA_l /\ (World !st interp) |= Possible fmlA_u /\
+      (World !st interp) |= Possible fmlB_l /\ (World !st interp) |= Possible fmlB_u /\
+      (World !st interp) |= Possible fmlC_l /\ (World !st interp) |= Possible fmlC_u
+    }
+    ensures {
+      let p = result in
+      (Leq p) = compose_pvs fml_and_and !st &&
+      (World !st interp) |= StatB (Leq p) fml_and_and
+    }
+    =
+      let p1 = exec_ttest_ind_eq t_n1 t_n2 d1 d2 Two in
+      let p2 = exec_ttest_ind_eq t_n1 t_n3 d1 d3 Two in
+      let p3 = exec_ttest_ind_eq t_n2 t_n3 d2 d3 Two in
+      min_real (min_real p1 p2) p3
+end

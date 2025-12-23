@@ -1,0 +1,52 @@
+module Example3
+  use cameleerBHL.CameleerBHL
+  use ttest.Ttest
+
+  let function mu1 : parameter = "mu1"
+  let function mu2 : parameter = "mu2"
+  let function v1  : parameter = "var1"
+  let function v2  : parameter = "var2"
+
+  let function t_n1 : distribution = NormalD (Param mu1) (Param v1)
+  let function t_n2 : distribution = NormalD (Param mu2) (Param v2)
+
+  let function fmlA_l : formula = mean t_n1 $< mean t_n2
+  let function fmlA_u : formula = mean t_n1 $> mean t_n2
+  let function fmlA   : formula = mean t_n1 $!= mean t_n2
+
+  (* Execute Student's t-test for two population means *)
+  let example3_eq (d1 : dataset real) (d2 : dataset real) : real
+    requires {
+      is_empty !st /\
+      independent d1 d2 /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\
+      d1.scale = Interval /\ d2.scale = Interval /\
+      (World !st interp) |= eq_variance t_n1 t_n2 /\
+      (World !st interp) |= Possible fmlA_l /\
+      (World !st interp) |= Possible fmlA_u
+    }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs fmlA !st &&
+      (World !st interp) |= StatB (Eq p) fmlA
+    }
+    = exec_ttest_ind_eq t_n1 t_n2 d1 d2 Two
+
+  (* Execute Welch's t-test for two population means *)
+  let example3_neq (d1 : dataset real) (d2 : dataset real) : real
+    requires {
+      is_empty !st /\
+      independent d1 d2 /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\
+      d1.scale = Interval /\ d2.scale = Interval /\
+      (World !st interp) |= Not (eq_variance t_n1 t_n2) /\
+      (World !st interp) |= Possible fmlA_l /\
+      (World !st interp) |= Possible fmlA_u
+    }
+    ensures {
+      let p = result in
+      Eq p = compose_pvs fmlA !st &&
+      (World !st interp) |= StatB (Eq p) fmlA
+    }
+    = exec_ttest_ind_neq t_n1 t_n2 d1 d2 Two
+end
