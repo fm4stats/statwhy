@@ -1,0 +1,59 @@
+open CameleerBHL
+
+module Example2 = struct
+  open Ttest
+
+  let t_n1 = NormalD (Param "mu1", Param "var1")
+  let t_n2 = NormalD (Param "mu2", Param "var2")
+  let fmlA_l : formula = mean t_n1 $< mean t_n2
+  let fmlA_u : formula = mean t_n1 $> mean t_n2
+  let fmlA : formula = mean t_n1 $!= mean t_n2
+
+  (* Execute Paired t-test for two population means *)
+  let example2 (d1: float dataset) (d2: float dataset) : float =
+    exec_ttest_paired t_n1 t_n2 d1 d2 Two
+  (*@
+    p = example2 d1 d2
+    requires
+      is_empty (!st) /\ paired d1 d2 /\
+      d1.scale = Interval /\ d2.scale = Interval /\
+      sampled d1 t_n1 /\ sampled d2 t_n2 /\
+      (World (!st) interp) |= Possible fmlA_l /\
+      (World (!st) interp) |= Possible fmlA_u
+    ensures
+      Eq p = compose_pvs fmlA !st &&
+      (World !st interp) |= StatB (Eq p) fmlA
+  *)
+
+  let y1 =
+    [
+      0.602625786295998389;
+      2.14566916029819144;
+      1.35823522315676626;
+      1.17182034121895451;
+      2.73483412251327973;
+      0.748574993793243215;
+      -1.23872899202434184;
+      1.13256387540348635;
+      2.13263167487555538;
+      -0.690867157847799;
+    ]
+
+  let y2 =
+    [
+      1.20573474164759054;
+      2.72478620692767493;
+      1.72478774466419971;
+      1.52252941317296231;
+      3.27225924826821712;
+      1.39473479558607627;
+      -0.944372818453007135;
+      1.64193391204925154;
+      2.54602531474281335;
+      -0.0302616181108142923;
+    ]
+
+  let[@run] a =
+    let res = example2 y1 y2 in
+    Printf.printf "p-value : %f\n" res
+end

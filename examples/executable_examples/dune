@@ -1,0 +1,7 @@
+(env
+ (dev
+  (flags (:standard -w -32))))
+
+(executables
+ (names example1 example2 example3 example4 example6)
+ (libraries pyml))
