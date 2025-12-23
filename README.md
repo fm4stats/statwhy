@@ -91,7 +91,7 @@ $ cd cameleer
 $ opam pin add .
 ```
 
-This will install Cameleer, StatWhy (included in `cameleer/src/statwhy`), and their dependencies.
+This will install Cameleer, StatWhy (included in `cameleer/statwhy`), and their dependencies.
 In the installation of Cameleer, the Why3 platform is automatically installed.
 
 4. Install CVC5
@@ -124,6 +124,25 @@ $ why3 config detect
 ```
 
 As an initial test, try running the one-sample t-test program by following the instructions in [Example 1](### Example 1: One-sample t-test (Section 3.1 in our paper)) below.
+
+### Execute OCaml programs
+
+To execute `.ml` files in `examples/executable_examples`, you need to install
+
+1. pyml (OCaml package)
+2. scipy (Python library)
+
+Pyml can be installed via opam:
+
+``` bash
+opam install pyml
+```
+
+Numpy can be installed via pip:
+
+``` bash
+pip install scipy
+```
 
 ## Usage
 

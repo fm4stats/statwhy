@@ -139,7 +139,7 @@ hypothesis testing examples addressed in our paper.</p>
 <ol type="1">
 <li>MacBook Pro – M2 Max CPU, 96 GB RAM, macOS 15.3.2</li>
 <li>DELL Precision 5490 – Intel Core Ultra 9 185H, 64 GB RAM, Windows 11
-(via WSL)</li>
+and Ubuntu 24.04 (via VirtualBox)</li>
 </ol>
 <h2 id="correctness-of-statwhy">Correctness of StatWhy</h2>
 <p>We have tested the tool StatWhy by (i) checking that StatWhy can
@@ -191,7 +191,7 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd cameleer</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> opam pin add .</span></code></pre></div>
 <p>This will install Cameleer, StatWhy (included in
-<code>cameleer/src/statwhy</code>), and their dependencies. In the
+<code>cameleer/statwhy</code>), and their dependencies. In the
 installation of Cameleer, the Why3 platform is automatically
 installed.</p>
 <ol start="4" type="1">
@@ -218,14 +218,27 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href=
 following the instructions in <a
 href="###%20Example%201:%20One-sample%20t-test%20(Section%203.1%20in%20our%20paper)">Example
 1</a> below.</p>
+<h3 id="execute-ocaml-programs">Execute OCaml programs</h3>
+<p>To execute <code>.ml</code> files in
+<code>examples/executable_examples</code>, you need to install</p>
+<ol type="1">
+<li>pyml (OCaml package)</li>
+<li>scipy (Python library)</li>
+</ol>
+<p>Pyml can be installed via opam:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">opam</span> install pyml</span></code></pre></div>
+<p>Numpy can be installed via pip:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install scipy</span></code></pre></div>
 <h2 id="usage">Usage</h2>
 <p>You can verify an OCaml code via Cameleer by running the
 following:</p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.ml</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.ml</span></code></pre></div>
 <p>If you want to verify a WhyML code:</p>
-<div class="sourceCode" id="cb13"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.mlw</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.mlw</span></code></pre></div>
 <p>Note that in both cases, you need our extension of Cameleer to load
 StatWhy.</p>
 <h2 id="example-one-sample-t-test">Example: One-sample t-test</h2>
@@ -233,8 +246,8 @@ StatWhy.</p>
 t-test, which is used to compare a population mean with a specified
 value. To verify the OCaml program <code>examples/example1.ml</code>,
 run the following command:</p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">statwhy</span> example1.ml</span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">statwhy</span> example1.ml</span></code></pre></div>
 <p>This will launch the Why3 IDE as follows:</p>
 <p><img src="./screenshots/example1-why3-ide.png?raw=true"
 title="The Why3 IDE screen." /></p>
