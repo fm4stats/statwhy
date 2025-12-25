@@ -1,6 +1,13 @@
 # StatWhy v.1.3.0
 
-StatWhy is a software tool for automatically verifying the correctness of statistical hypothesis testing programs. In this file, we present the structure of this repository, the resource requirements for the tool, and show how to verify the programs that implement the hypothesis testing examples addressed in our paper.
+StatWhy is a software tool for automatically verifying the correctness of statistical hypothesis testing programs. In this file, we present the structure of this repository, the resource requirements for the tool, and show how to verify the programs that implement the hypothesis testing examples addressed in our paper:
+```
+StatWhy: Formal Verification Tool for Statistical Hypothesis Testing Programs.
+Yusuke Kawamoto, Kentaro Kobayashi, and Kohei Suenaga. [alphabetical authorship]
+Proc. of 37th International Conference on Computer Aided Verification (CAV 2025),
+Part II, Lecture Notes in Computer Science, Vol.15932, pp.216-230, July 2025.
+```
+
 
 ## Structure of the repository
 
@@ -15,8 +22,9 @@ root/
 │   └ ...
 ├ doc
 │ └ Statwhy_User_Documentation.pdf user documentation of statwhy
-├ examples                         codes for replicating the results
-│ └ mlw                            examples not explained in this file
+├ examples                         example codes for replicating the results
+│ ├ mlw                            WhyML codes not explained in this file
+│ └ executable_examples            OCaml codes executable using pyml and scipy
 └ ...
 ```
 
@@ -125,6 +133,8 @@ $ why3 config detect
 
 As an initial test, try running the one-sample t-test program by following the instructions in [Example 1](### Example 1: One-sample t-test (Section 3.1 in our paper)) below.
 
+*Note*: If you update from an older version of StatWhy or have updated CVC5 since your last StatWhy installation, we recommend deleting the old ~/.statwhy.conf file.
+
 ### Execute OCaml programs
 
 To execute `.ml` files in `examples/executable_examples`, you need to install
@@ -159,6 +169,19 @@ $ statwhy <file-to-be-verified>.mlw
 ```
 
 Note that in both cases, you need our extension of Cameleer to load StatWhy.
+
+```
+statwhy <file>.(ml|mlw)
+Verify (OCaml|WhyML) program
+
+  -L add <dir> to the search path
+  --genconf generate config file
+  --debug print debug information
+  --batch activate batch mode
+  --extract activate extraction mode
+  --prover set prover for batch mode
+  --version  print version information
+```
 
 ## Example: One-sample t-test
 

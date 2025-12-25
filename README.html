@@ -119,7 +119,11 @@
 correctness of statistical hypothesis testing programs. In this file, we
 present the structure of this repository, the resource requirements for
 the tool, and show how to verify the programs that implement the
-hypothesis testing examples addressed in our paper.</p>
+hypothesis testing examples addressed in our paper:</p>
+<pre><code>StatWhy: Formal Verification Tool for Statistical Hypothesis Testing Programs.
+Yusuke Kawamoto, Kentaro Kobayashi, and Kohei Suenaga. [alphabetical authorship]
+Proc. of 37th International Conference on Computer Aided Verification (CAV 2025),
+Part II, Lecture Notes in Computer Science, Vol.15932, pp.216-230, July 2025.</code></pre>
 <h2 id="structure-of-the-repository">Structure of the repository</h2>
 <pre><code>root/
 ├ README.md                        this file
@@ -131,8 +135,9 @@ hypothesis testing examples addressed in our paper.</p>
 │   └ ...
 ├ doc
 │ └ Statwhy_User_Documentation.pdf user documentation of statwhy
-├ examples                         codes for replicating the results
-│ └ mlw                            examples not explained in this file
+├ examples                         example codes for replicating the results
+│ ├ mlw                            WhyML codes not explained in this file
+│ └ executable_examples            OCaml codes executable using pyml and scipy
 └ ...</code></pre>
 <h2 id="resource-requirements">Resource requirements</h2>
 <p>StatWhy has been tested on the following environments:</p>
@@ -153,9 +158,9 @@ and (ii) proving various lemmas on the properties of epistemic logic
 Installation using Bash Script (Ubuntu 24.04)</h3>
 <p>On Ubuntu 24.04, StatWhy can be installed by running the following
 commands:</p>
-<div class="sourceCode" id="cb2"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> chmod +x install.sh</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ./install.sh</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> chmod +x install.sh</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> ./install.sh</span></code></pre></div>
 <p>During installation, you will be prompted to enter <code>y</code> or
 <code>n</code> multiple times. Press <code>y</code> when prompted.</p>
 <p>After installation, restart the machine or log in again to apply the
@@ -165,31 +170,31 @@ changes made to <code>~/.profile</code>.</p>
 <li>Install opam</li>
 </ol>
 <p>On Ubuntu:</p>
-<div class="sourceCode" id="cb3"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get update</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get install opam</span></code></pre></div>
-<p>On macOS, install opam with Homebrew:</p>
 <div class="sourceCode" id="cb4"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew install opam</span></code></pre></div>
-<p>Alternatively, if you use MacPorts:</p>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get update</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt-get install opam</span></code></pre></div>
+<p>On macOS, install opam with Homebrew:</p>
 <div class="sourceCode" id="cb5"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> port install opam</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew install opam</span></code></pre></div>
+<p>Alternatively, if you use MacPorts:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> port install opam</span></code></pre></div>
 <ol start="2" type="1">
 <li>Install OCaml 5.0.0</li>
 </ol>
 <p>To install OCaml 5.0.0, execute the following command:</p>
-<div class="sourceCode" id="cb6"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> opam switch create 5.0.0</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> eval <span class="va">$(</span><span class="ex">opam</span> env<span class="va">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> opam switch create 5.0.0</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> eval <span class="va">$(</span><span class="ex">opam</span> env<span class="va">)</span></span></code></pre></div>
 <ol start="3" type="1">
 <li>Install StatWhy and Cameleer</li>
 </ol>
 <p>Download the source code of StatWhy, including an extension of
 Cameleer. Install and by running:</p>
-<div class="sourceCode" id="cb7"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> unzip statwhy-1.3.0.zip</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd cameleer</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> opam pin add .</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> unzip statwhy-1.3.0.zip</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd cameleer</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> opam pin add .</span></code></pre></div>
 <p>This will install Cameleer, StatWhy (included in
 <code>cameleer/statwhy</code>), and their dependencies. In the
 installation of Cameleer, the Why3 platform is automatically
@@ -198,26 +203,29 @@ installed.</p>
 <li>Install CVC5</li>
 </ol>
 <p>On Ubuntu 24.04 LTS, you can install CVC5 by:</p>
-<div class="sourceCode" id="cb8"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt install cvc5</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo apt install cvc5</span></code></pre></div>
 <p>Alternatively, you can directly download a binary from the GitHub
 repository:</p>
-<div class="sourceCode" id="cb9"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> wget https://github.com/cvc5/cvc5/releases/download/cvc5-1.2.0/cvc5-Linux-x86_64-static.zip</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> unzip cvc5-Linux-x86_64-static.zip</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo cp ./cvc5-Linux-x86_64-static/bin/cvc5 /usr/local/bin</span></code></pre></div>
-<p>On macOS, a Homebrew Tap for CVC5 is also available:</p>
 <div class="sourceCode" id="cb10"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew tap cvc5/homebrew-cvc5</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew install cvc5</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> wget https://github.com/cvc5/cvc5/releases/download/cvc5-1.2.0/cvc5-Linux-x86_64-static.zip</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> unzip cvc5-Linux-x86_64-static.zip</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo cp ./cvc5-Linux-x86_64-static/bin/cvc5 /usr/local/bin</span></code></pre></div>
+<p>On macOS, a Homebrew Tap for CVC5 is also available:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew tap cvc5/homebrew-cvc5</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> brew install cvc5</span></code></pre></div>
 <p>After installing the solver, run the following command to let Why3
 detect it:</p>
-<div class="sourceCode" id="cb11"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> why3 config detect</span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> why3 config detect</span></code></pre></div>
 <p>As an initial test, try running the one-sample t-test program by
 following the instructions in <a
 href="###%20Example%201:%20One-sample%20t-test%20(Section%203.1%20in%20our%20paper)">Example
 1</a> below.</p>
+<p><em>Note</em>: If you update from an older version of StatWhy or have
+updated CVC5 since your last StatWhy installation, we recommend deleting
+the old ~/.statwhy.conf file.</p>
 <h3 id="execute-ocaml-programs">Execute OCaml programs</h3>
 <p>To execute <code>.ml</code> files in
 <code>examples/executable_examples</code>, you need to install</p>
@@ -226,28 +234,38 @@ href="###%20Example%201:%20One-sample%20t-test%20(Section%203.1%20in%20our%20pap
 <li>scipy (Python library)</li>
 </ol>
 <p>Pyml can be installed via opam:</p>
-<div class="sourceCode" id="cb12"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">opam</span> install pyml</span></code></pre></div>
-<p>Numpy can be installed via pip:</p>
 <div class="sourceCode" id="cb13"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install scipy</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="ex">opam</span> install pyml</span></code></pre></div>
+<p>Numpy can be installed via pip:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install scipy</span></code></pre></div>
 <h2 id="usage">Usage</h2>
 <p>You can verify an OCaml code via Cameleer by running the
 following:</p>
-<div class="sourceCode" id="cb14"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.ml</span></code></pre></div>
-<p>If you want to verify a WhyML code:</p>
 <div class="sourceCode" id="cb15"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.mlw</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.ml</span></code></pre></div>
+<p>If you want to verify a WhyML code:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> statwhy <span class="op">&lt;</span>file-to-be-verified<span class="op">&gt;</span>.mlw</span></code></pre></div>
 <p>Note that in both cases, you need our extension of Cameleer to load
 StatWhy.</p>
+<pre><code>statwhy &lt;file&gt;.(ml|mlw)
+Verify (OCaml|WhyML) program
+
+  -L add &lt;dir&gt; to the search path
+  --genconf generate config file
+  --debug print debug information
+  --batch activate batch mode
+  --extract activate extraction mode
+  --prover set prover for batch mode
+  --version  print version information</code></pre>
 <h2 id="example-one-sample-t-test">Example: One-sample t-test</h2>
 <p>We demonstrate how to verify a program that conducts a one-sample
 t-test, which is used to compare a population mean with a specified
 value. To verify the OCaml program <code>examples/example1.ml</code>,
 run the following command:</p>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">statwhy</span> example1.ml</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">statwhy</span> example1.ml</span></code></pre></div>
 <p>This will launch the Why3 IDE as follows:</p>
 <p><img src="./screenshots/example1-why3-ide.png?raw=true"
 title="The Why3 IDE screen." /></p>
